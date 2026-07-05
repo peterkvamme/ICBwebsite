@@ -28,7 +28,7 @@ body {
 }
 
 .public-page {
-  padding-top: clamp(18px, 4vw, 34px);
+  padding-top: clamp(14px, 3vw, 28px);
 }
 
 .status-card,
@@ -40,31 +40,28 @@ body {
 }
 
 .status-card {
-  padding: clamp(20px, 5vw, 32px);
+  padding: clamp(18px, 4vw, 28px);
 }
 
-/* PUBLIC STATUS CARD */
-
 .live-header,
-.live-layout {
+.live-layout,
+.top-status-row {
   display: grid;
-  grid-template-columns: clamp(82px, 22vw, 132px) 1fr;
-  gap: clamp(14px, 4vw, 26px);
+  grid-template-columns: clamp(96px, 24vw, 150px) 1fr;
+  gap: clamp(14px, 4vw, 24px);
   align-items: start;
 }
 
 .logo-column {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
 }
 
 .live-logo {
-  width: 100%;
-  max-width: 132px;
+  width: clamp(96px, 24vw, 150px);
   height: auto;
   object-fit: contain;
-  margin-top: 2px;
 }
 
 .live-copy,
@@ -73,40 +70,42 @@ body {
 }
 
 .brand-name {
-  font-size: clamp(2rem, 7vw, 3.4rem);
+  margin: 0 0 4px;
+  font-size: clamp(1.9rem, 7vw, 3.25rem);
   font-weight: 950;
+  line-height: 0.96;
   letter-spacing: -0.055em;
-  line-height: 0.98;
-  margin-bottom: 8px;
 }
 
 .status-card h1 {
   margin: 0;
-  font-size: clamp(1.65rem, 6vw, 2.6rem);
+  font-size: clamp(1.55rem, 5.6vw, 2.5rem);
+  font-weight: 900;
   line-height: 1;
   letter-spacing: -0.045em;
-  font-weight: 900;
 }
 
 .location-line {
-  margin-top: 12px;
-  font-size: clamp(1.25rem, 4.6vw, 1.85rem);
-  line-height: 1.15;
+  margin-top: 8px;
+  font-size: clamp(1.2rem, 4.5vw, 1.75rem);
   font-weight: 850;
+  line-height: 1.15;
 }
 
 .updated-text {
-  margin-top: 10px;
-  font-size: clamp(1rem, 3.5vw, 1.25rem);
+  display: inline;
+  margin-left: 10px;
+  font-size: clamp(0.9rem, 3vw, 1.05rem);
+  font-weight: 500;
   color: var(--muted);
-  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .note-line {
-  margin-top: clamp(18px, 4vw, 26px);
-  font-size: clamp(1.25rem, 4.4vw, 1.9rem);
+  margin-top: 10px;
+  font-size: clamp(1.15rem, 4vw, 1.65rem);
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.25;
   color: var(--text);
 }
 
@@ -114,13 +113,11 @@ body {
   display: none;
 }
 
-/* BUTTONS */
-
 .actions {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  margin-top: clamp(22px, 5vw, 32px);
+  margin-top: clamp(16px, 4vw, 24px);
 }
 
 .button,
@@ -128,7 +125,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: clamp(54px, 12vw, 66px);
+  min-height: clamp(52px, 11vw, 64px);
   padding: 14px 18px;
   border-radius: var(--radius-button);
   background: var(--button);
@@ -152,8 +149,6 @@ button.danger {
   background: var(--danger);
 }
 
-/* MAP */
-
 .map-card {
   margin-top: 14px;
   padding: 10px;
@@ -168,8 +163,6 @@ button.danger {
   overflow: hidden;
 }
 
-/* ABOUT */
-
 .about-section {
   margin: 52px auto 18px;
   padding: 0 8px 34px;
@@ -179,7 +172,7 @@ button.danger {
   text-align: center;
 }
 
-/* CAPTAIN PAGE */
+/* Captain page */
 
 .captain-top {
   width: min(100% - 24px, 820px);
