@@ -24,11 +24,11 @@ const gpsInfo = document.getElementById("gpsInfo");
 const sentInfo = document.getElementById("sentInfo");
 const noteInput = document.getElementById("noteInput");
 const currentNote = document.getElementById("currentNote");
+const customStatusInput = document.getElementById("customStatusInput");
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
@@ -58,13 +58,11 @@ function buildPayload(position = lastPosition) {
     payload.lng = position.coords.longitude;
     payload.accuracy = position.coords.accuracy;
   }
-
   return payload;
 }
 
 async function sendUpdate(position = lastPosition) {
   const payload = buildPayload(position);
-
   await update(ref(db, "boat/current"), payload);
 
   trackingStatus.textContent = payload.headline;
@@ -75,7 +73,7 @@ async function sendUpdate(position = lastPosition) {
   }
 
   if (currentNote) {
-    currentNote.textContent = currentState.note || "No customer announcement.";
+    currentNote.textContent = currentState.note || "No announcement.";
   }
 }
 
@@ -86,7 +84,6 @@ document.getElementById("startBtn").addEventListener("click", () => {
   }
 
   if (watchId !== null) return;
-
   trackingStatus.textContent = "Tracking active";
 
   watchId = navigator.geolocation.watchPosition(
@@ -97,11 +94,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
     error => {
       trackingStatus.textContent = `GPS error: ${error.message}`;
     },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 10000,
-      timeout: 20000
-    }
+    { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
   );
 });
 
@@ -117,7 +110,6 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
     note: noteInput.value.trim() || "Location sharing is off.",
     pauseUntil: null
   };
-
   await sendUpdate();
 });
 
@@ -126,30 +118,32 @@ document.querySelectorAll("[data-headline]").forEach(button => {
     currentState.headline = button.dataset.headline;
     currentState.status = button.dataset.status;
     currentState.note = noteInput.value.trim();
-
-    if (button.dataset.pause) {
-      currentState.pauseUntil = Date.now() + Number(button.dataset.pause) * 60 * 1000;
-    } else {
-      currentState.pauseUntil = null;
-    }
-
+    currentState.pauseUntil = button.dataset.pause
+      ? Date.now() + Number(button.dataset.pause) * 60 * 1000
+      : null;
     await sendUpdate();
   });
 });
 
-document.getElementById("saveNoteBtn").addEventListener("click", async () => {
-  currentState.note = noteInput.value.trim();
-  await sendUpdate();
-});
-
 document.getElementById("saveCustomStatusBtn").addEventListener("click", async () => {
-  const customStatus = document.getElementById("customStatusInput").value.trim();
-
+  const customStatus = customStatusInput.value.trim();
   if (!customStatus) return;
 
   currentState.headline = customStatus;
   currentState.status = "custom";
   currentState.note = noteInput.value.trim();
+  currentState.pauseUntil = null;
+  await sendUpdate();
+});
 
+customStatusInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("saveCustomStatusBtn").click();
+  }
+});
+
+document.getElementById("saveNoteBtn").addEventListener("click", async () => {
+  currentState.note = noteInput.value.trim();
   await sendUpdate();
 });

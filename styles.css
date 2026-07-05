@@ -1,17 +1,15 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 :root {
   --brand-blue: #38b6ff;
   --page-blue: #94d6ff;
   --text: #171717;
-  --muted: #444;
+  --muted: #666;
   --card: #ffffff;
   --button: #1d1d1f;
   --danger: #991b1b;
-  --radius-card: 24px;
-  --radius-button: 16px;
+  --radius-card: clamp(22px, 5vw, 34px);
+  --radius-button: 18px;
   --shadow-card: 0 10px 32px rgba(0, 0, 0, 0.08);
 }
 
@@ -22,173 +20,107 @@ body {
   color: var(--text);
 }
 
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(12px, 2vw, 20px);
-  padding: clamp(18px, 4vw, 30px) 16px clamp(12px, 2vw, 18px);
-  text-align: left;
-}
-
-.site-logo {
-  width: clamp(76px, 10vw, 112px);
-  height: auto;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.site-title-block h1 {
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 3.4rem);
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: -0.045em;
-}
-
-.site-title-block p {
-  margin: 5px 0 0;
-  font-size: clamp(1rem, 2vw, 1.3rem);
-  color: #222;
-}
-
 .page {
-  width: min(100% - 24px, 960px);
-  margin: 0 auto 32px;
+  width: min(100% - 24px, 820px);
+  margin: 0 auto 36px;
 }
 
-.card,
-.status-card,
-.map-card {
+.public-page { padding-top: clamp(18px, 4vw, 34px); }
+
+.status-card, .map-card, .card {
   background: var(--card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
 
-.card,
-.status-card {
-  padding: clamp(20px, 4vw, 32px);
-  margin-top: 14px;
+.status-card { padding: clamp(20px, 5vw, 32px); }
+
+.live-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(14px, 4vw, 24px);
+  align-items: start;
 }
 
-.card h2,
-.card h3 {
-  margin-top: 0;
+.live-logo {
+  width: clamp(76px, 18vw, 112px);
+  height: auto;
+  object-fit: contain;
+  margin-top: 2px;
 }
 
-.status-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: clamp(14px, 3vw, 22px);
+.brand-name {
+  font-size: clamp(1.35rem, 5vw, 2.2rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 8px;
 }
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 30px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: clamp(0.75rem, 1.8vw, 0.85rem);
-  font-weight: 850;
-  letter-spacing: 0.04em;
-}
-
-.status-loading,
-.status-closed {
-  background: #eeeeee;
-  color: #555;
-}
-
-.status-live {
-  background: #dcf8e4;
-  color: #176b35;
-}
-
-.status-paused {
-  background: #fff2cc;
-  color: #8a6500;
-}
-
-.status-weather {
-  background: #dff0ff;
-  color: #245a7c;
-}
-
-.updated-text {
-  font-size: clamp(0.85rem, 2vw, 1rem);
-  color: #666;
-  text-align: right;
-}
-
-.status-card h2 {
+.status-card h1 {
   margin: 0;
-  font-size: clamp(2.35rem, 8vw, 3.8rem);
+  font-size: clamp(2.05rem, 8.5vw, 3.8rem);
   line-height: 0.98;
   letter-spacing: -0.055em;
-  font-weight: 900;
+  font-weight: 950;
 }
 
 .location-line {
-  margin-top: 14px;
-  font-size: clamp(1.35rem, 4vw, 1.8rem);
-  font-weight: 800;
+  margin-top: 12px;
+  font-size: clamp(1.35rem, 5vw, 1.95rem);
+  line-height: 1.15;
+  font-weight: 850;
+}
+
+.updated-text {
+  margin-top: 10px;
+  font-size: clamp(1rem, 3.5vw, 1.25rem);
+  color: var(--muted);
+  line-height: 1.2;
 }
 
 .note-line {
-  margin-top: 18px;
-  font-size: clamp(1.25rem, 3.5vw, 1.9rem);
+  margin-top: clamp(18px, 4vw, 26px);
+  font-size: clamp(1.25rem, 4.4vw, 1.9rem);
   font-weight: 800;
   line-height: 1.3;
-  color: #171717;
+  color: var(--text);
 }
 
-.note-line:empty {
-  display: none;
-}
-
-.warning-line {
-  margin-top: 12px;
-  font-weight: 800;
-  color: #9a5b00;
-}
+.note-line:empty { display: none; }
 
 .actions {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  margin-top: clamp(22px, 4vw, 30px);
+  margin-top: clamp(22px, 5vw, 32px);
 }
 
-.button,
-button {
+.button, button {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: clamp(50px, 7vw, 58px);
-  padding: 13px 18px;
+  min-height: clamp(54px, 12vw, 66px);
+  padding: 14px 18px;
   border-radius: var(--radius-button);
   background: var(--button);
   color: white;
   text-decoration: none;
   text-align: center;
   font: inherit;
-  font-weight: 850;
+  font-size: clamp(1rem, 3.8vw, 1.2rem);
+  font-weight: 900;
   border: 0;
   cursor: pointer;
 }
 
-.button-light,
 button.secondary {
   background: #f1f1f1;
   color: #1d1d1f;
+  margin-top: 10px;
 }
 
-button.danger {
-  background: var(--danger);
-}
+button.danger { background: var(--danger); }
 
 .map-card {
   margin-top: 14px;
@@ -198,25 +130,63 @@ button.danger {
 
 #map {
   width: 100%;
-  height: 52vh;
-  min-height: 360px;
-  border-radius: 18px;
+  height: 56vh;
+  min-height: 390px;
+  border-radius: calc(var(--radius-card) - 8px);
   overflow: hidden;
 }
 
-input,
-select {
-  width: 100%;
-  font: inherit;
-  border-radius: 14px;
-  border: 1px solid #ddd;
-  padding: 12px 14px;
+.about-section {
+  margin: 52px auto 18px;
+  padding: 0 8px 34px;
+  color: #102536;
+  font-size: clamp(1rem, 3vw, 1.15rem);
+  font-weight: 650;
+  text-align: center;
 }
+
+.captain-top {
+  width: min(100% - 24px, 820px);
+  margin: 0 auto;
+  padding: 18px 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.captain-logo {
+  width: clamp(54px, 13vw, 76px);
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.captain-top h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 6vw, 2.7rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.captain-top p {
+  margin: 5px 0 0;
+  color: #222;
+}
+
+.card {
+  padding: clamp(20px, 4vw, 28px);
+  margin-top: 14px;
+}
+
+.card h2, .card h3 { margin: 0 0 12px; }
+.card h3 { margin-top: 26px; }
 
 .grid {
   display: grid;
   gap: 10px;
 }
+
+.status-grid { grid-template-columns: 1fr; }
 
 .small {
   color: var(--muted);
@@ -234,16 +204,16 @@ select {
   line-height: 1.35;
 }
 
-#saveNoteBtn {
-  margin-top: 10px;
+input, select {
+  width: 100%;
+  font: inherit;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+  padding: 14px;
+  min-height: 52px;
+  font-size: 1rem;
 }
 
-@media (min-width: 760px) {
-  .actions {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  #map {
-    height: 500px;
-  }
+@media (min-width: 560px) {
+  .status-grid { grid-template-columns: 1fr 1fr; }
 }

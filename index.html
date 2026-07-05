@@ -7,27 +7,20 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
-
 <body>
-  <header class="site-header">
-    <img src="logo.png" class="site-logo" alt="Ice Cream Boat logo">
-    <div class="site-title-block">
-      <h1>Ice Cream Boat</h1>
-      <p>Live location on Gull Lake</p>
-    </div>
-  </header>
-
-  <main class="page">
+  <main class="page public-page">
     <section class="status-card">
-      <h2 id="headline">Finding the boat...</h2>
-
-      <div id="area" class="location-line">Getting current location.</div>
+      <div class="live-header">
+        <img src="logo.png" class="live-logo" alt="Ice Cream Boat logo">
+        <div class="live-copy">
+          <div class="brand-name">Ice Cream Boat</div>
+          <h1 id="headline">Finding the boat...</h1>
+          <div id="area" class="location-line">Getting current location.</div>
+          <div id="updated" class="updated-text"></div>
+        </div>
+      </div>
 
       <div id="note" class="note-line"></div>
-
-      <div id="updated" class="updated-text"></div>
-
-      <div id="stale" class="warning-line" style="display:none;"></div>
 
       <div class="actions">
         <a id="mapsLink" class="button" target="_blank" rel="noopener">
@@ -38,6 +31,10 @@
 
     <section class="map-card">
       <div id="map"></div>
+    </section>
+
+    <section class="about-section">
+      <p>Ice Cream Boat on Gull Lake, MN</p>
     </section>
   </main>
 
