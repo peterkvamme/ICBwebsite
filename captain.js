@@ -23,6 +23,7 @@ const trackingStatus = document.getElementById("trackingStatus");
 const gpsInfo = document.getElementById("gpsInfo");
 const sentInfo = document.getElementById("sentInfo");
 const noteInput = document.getElementById("noteInput");
+const currentNote = document.getElementById("currentNote");
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
@@ -72,6 +73,10 @@ async function sendUpdate(position = lastPosition) {
   if (position) {
     gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
   }
+
+  if (currentNote) {
+    currentNote.textContent = currentState.note || "No customer announcement.";
+  }
 }
 
 document.getElementById("startBtn").addEventListener("click", () => {
@@ -109,7 +114,7 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
   currentState = {
     headline: "Done for today",
     status: "done",
-    note: "Location sharing is off.",
+    note: noteInput.value.trim() || "Location sharing is off.",
     pauseUntil: null
   };
 
