@@ -4,8 +4,14 @@
   <meta charset="utf-8">
   <title>Captain Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
   <header class="captain-top">
     <img src="logo.png" class="captain-logo" alt="Ice Cream Boat logo">
@@ -18,16 +24,19 @@
   <main class="page">
     <section class="card" id="loginCard">
       <h2>Login</h2>
+
       <div class="grid">
         <input id="email" type="email" placeholder="Email">
         <input id="password" type="password" placeholder="Password">
         <button id="loginBtn">Login</button>
       </div>
+
       <p id="loginMsg" class="small"></p>
     </section>
 
     <section class="card" id="dashboard" style="display:none;">
       <h2 id="trackingStatus">Not tracking</h2>
+
       <p id="gpsInfo" class="small"></p>
       <p id="sentInfo" class="small"></p>
 
@@ -42,6 +51,7 @@
 
     <section class="card" id="statusControls" style="display:none;">
       <h2>Status</h2>
+
       <div class="grid status-grid">
         <button data-headline="Available now" data-status="available">Available Now</button>
         <button data-headline="Back in 30 minutes" data-status="paused" data-pause="30">Back in 30</button>
