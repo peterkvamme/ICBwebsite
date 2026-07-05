@@ -6,12 +6,11 @@
   --brand-blue: #67c8ff;
   --text: #171717;
   --muted: #315065;
-  --button: #ffffff;
+  --button-bg: #ffffff;
   --button-text: #171717;
-  --danger: #991b1b;
   --radius-card: clamp(22px, 5vw, 34px);
   --radius-button: 18px;
-  --shadow-card: 0 10px 32px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 12px 36px rgba(0, 0, 0, 0.14);
 }
 
 body {
@@ -41,29 +40,29 @@ body {
   padding: clamp(16px, 4vw, 26px);
 }
 
-.status-row {
+.status-layout {
   display: grid;
-  grid-template-columns: clamp(118px, 31vw, 172px) 1fr;
-  column-gap: clamp(12px, 3vw, 22px);
+  grid-template-columns: clamp(124px, 32vw, 180px) minmax(0, 1fr);
+  gap: clamp(12px, 3vw, 22px);
   align-items: stretch;
 }
 
-.status-logo-wrap {
+.logo-column {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  min-height: 100%;
+  min-width: 0;
 }
 
 .status-logo {
   width: 100%;
-  max-width: 172px;
   height: 100%;
-  max-height: 205px;
+  max-height: 220px;
   object-fit: contain;
+  display: block;
 }
 
-.status-info {
+.text-column {
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -72,7 +71,7 @@ body {
 
 .brand-name {
   margin: 0 0 4px;
-  font-size: clamp(1.55rem, 5.4vw, 2.45rem);
+  font-size: clamp(1.55rem, 5.3vw, 2.4rem);
   font-weight: 950;
   line-height: 0.98;
   letter-spacing: -0.055em;
@@ -86,16 +85,17 @@ body {
   letter-spacing: -0.055em;
 }
 
-.location-meta-row {
+.location-updated-row {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 0 10px;
+  column-gap: 10px;
+  row-gap: 2px;
   margin-top: 8px;
 }
 
 .location-line {
-  font-size: clamp(1.1rem, 4.3vw, 1.65rem);
+  font-size: clamp(1.1rem, 4.25vw, 1.65rem);
   font-weight: 850;
   line-height: 1.15;
 }
@@ -119,17 +119,16 @@ body {
   display: none;
 }
 
-.button,
-button {
+.button {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: clamp(52px, 11vw, 64px);
   width: 100%;
-  padding: 14px 18px;
+  min-height: clamp(52px, 11vw, 64px);
   margin-top: clamp(12px, 3vw, 18px);
+  padding: 14px 18px;
   border-radius: var(--radius-button);
-  background: var(--button);
+  background: var(--button-bg);
   color: var(--button-text);
   text-decoration: none;
   text-align: center;
@@ -137,7 +136,6 @@ button {
   font-size: clamp(1rem, 3.8vw, 1.2rem);
   font-weight: 900;
   border: 0;
-  cursor: pointer;
 }
 
 .map-card {
@@ -163,7 +161,7 @@ button {
   text-align: center;
 }
 
-/* Captain page support */
+/* Captain page compatibility */
 
 .captain-top {
   width: min(100% - 24px, 820px);
@@ -246,6 +244,25 @@ select {
   font-size: 1rem;
 }
 
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(52px, 11vw, 64px);
+  width: 100%;
+  padding: 14px 18px;
+  margin-top: 0;
+  border-radius: var(--radius-button);
+  background: #1d1d1f;
+  color: #ffffff;
+  text-align: center;
+  font: inherit;
+  font-size: clamp(1rem, 3.8vw, 1.2rem);
+  font-weight: 900;
+  border: 0;
+  cursor: pointer;
+}
+
 button.secondary {
   background: #f1f1f1;
   color: #1d1d1f;
@@ -253,7 +270,7 @@ button.secondary {
 }
 
 button.danger {
-  background: var(--danger);
+  background: #991b1b;
   color: white;
 }
 

@@ -15,9 +15,9 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 const boatIcon = L.icon({
   iconUrl: "logo.png",
-  iconSize: [70, 70],
-  iconAnchor: [35, 35],
-  popupAnchor: [0, -35]
+  iconSize: [72, 72],
+  iconAnchor: [36, 36],
+  popupAnchor: [0, -36]
 });
 
 let boatMarker = null;
