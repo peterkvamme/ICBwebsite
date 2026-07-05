@@ -141,3 +141,15 @@ document.getElementById("saveNoteBtn").addEventListener("click", async () => {
   currentState.note = noteInput.value.trim();
   await sendUpdate();
 });
+
+document.getElementById("saveCustomStatusBtn").addEventListener("click", async () => {
+  const customStatus = document.getElementById("customStatusInput").value.trim();
+
+  if (!customStatus) return;
+
+  currentState.headline = customStatus;
+  currentState.status = "custom";
+  currentState.note = noteInput.value.trim();
+
+  await sendUpdate();
+});
