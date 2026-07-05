@@ -6,13 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <header>
-    <h1>Captain Dashboard</h1>
-    <p class="subtitle">Private boat location controls</p>
+  <header class="site-header captain-header">
+    <img src="logo.png" class="site-logo" alt="Ice Cream Boat logo">
+    <div class="site-title-block">
+      <h1>Captain Dashboard</h1>
+      <p>Private boat location controls</p>
+    </div>
   </header>
 
-  <main>
+  <main class="page">
     <section class="card" id="loginCard">
       <h2>Login</h2>
       <div class="grid">
@@ -24,14 +28,12 @@
     </section>
 
     <section class="card" id="dashboard" style="display:none;">
-      <div id="trackingStatus" class="status">Not tracking</div>
-      <div id="gpsInfo" class="small"></div>
-      <div id="sentInfo" class="small"></div>
-      <h3 style="margin-top:18px;">Customer message</h3>
+      <h2 id="trackingStatus">Not tracking</h2>
+      <p id="gpsInfo" class="small"></p>
+      <p id="sentInfo" class="small"></p>
 
-<div id="currentNote" class="note-preview">
-    No note
-</div>
+      <h3>Customer announcement</h3>
+      <div id="currentNote" class="note-preview">No customer announcement.</div>
 
       <div class="actions">
         <button id="startBtn">Start Sharing Location</button>
@@ -41,8 +43,9 @@
 
     <section class="card" id="statusControls" style="display:none;">
       <h2>Status</h2>
+
       <div class="grid">
-        <button data-headline="Available now — wave us down" data-status="available">Available Now</button>
+        <button data-headline="Available now" data-status="available">Available Now</button>
         <button data-headline="Back in 15 minutes" data-status="paused" data-pause="15">Back in 15</button>
         <button data-headline="Back in 30 minutes" data-status="paused" data-pause="30">Back in 30</button>
         <button data-headline="Starting soon" data-status="starting_soon">Starting Soon</button>
@@ -50,9 +53,9 @@
         <button data-headline="Done for today" data-status="done">Done Today</button>
       </div>
 
-      <h3>Optional note</h3>
-      <input id="noteInput" placeholder="Example: Cruising the west shore">
-      <button id="saveNoteBtn" class="secondary">Save Note</button>
+      <h3>Customer announcement</h3>
+      <input id="noteInput" placeholder="Example: Back at 2:30 near Bar Harbor">
+      <button id="saveNoteBtn" class="secondary">Save Announcement</button>
     </section>
   </main>
 
