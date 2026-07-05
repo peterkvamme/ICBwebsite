@@ -19,22 +19,20 @@
 
   <main class="page">
     <section class="status-card">
-      <div class="status-topline">
-        <span id="statusBadge" class="status-badge status-loading">LOCATING</span>
-        <span id="updated" class="updated-text">Checking location...</span>
-      </div>
-
       <h2 id="headline">Finding the boat...</h2>
 
       <div id="area" class="location-line">Getting current location.</div>
 
       <div id="note" class="note-line"></div>
 
-      <div id="stale" class="warning-line"></div>
+      <div id="updated" class="updated-text"></div>
+
+      <div id="stale" class="warning-line" style="display:none;"></div>
 
       <div class="actions">
-        <a id="mapsLink" class="button" target="_blank" rel="noopener">Open in Maps</a>
-        <a class="button button-light" href="sms:+12185551212">Text the Boat</a>
+        <a id="mapsLink" class="button" target="_blank" rel="noopener">
+          Open in Maps
+        </a>
       </div>
     </section>
 
