@@ -129,10 +129,19 @@ body {
 }
 
 .note-line {
-  margin-top: 16px;
-  font-size: 1.1rem;
-  line-height: 1.4;
-  color: #333;
+  margin-top: 22px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #eef6ff;
+  border-left: 6px solid #38b6ff;
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.45;
+  color: #222;
+}
+
+.note-line:empty {
+  display: none;
 }
 
 .warning-line {
@@ -202,6 +211,16 @@ select {
   gap: 10px;
 }
 
+.note-preview {
+  margin-top: 8px;
+  padding: 14px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 650;
+  min-height: 52px;
+}
+
 @media (min-width: 760px) {
   .actions {
     grid-template-columns: 1fr 1fr;
@@ -210,14 +229,4 @@ select {
   #map {
     height: 500px;
   }
-}
-
-.note-preview {
-    margin-top:8px;
-    padding:14px;
-    background:#f5f5f5;
-    border-radius:12px;
-    font-size:1.1rem;
-    font-weight:600;
-    min-height:52px;
 }
