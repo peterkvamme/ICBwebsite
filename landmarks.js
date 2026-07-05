@@ -1,5 +1,5 @@
 window.BOAT_LANDMARKS = [
-  {
+   {
     name: "Zorbaz on Gull Lake",
     label: "near Zorbaz",
     lat: 46.4800,
@@ -70,5 +70,77 @@ window.BOAT_LANDMARKS = [
     label: "near Main Lake",
     lat: 46.4450,
     lng: -94.3400
+  },
+  {
+    name: "Love Lake",
+    label: "near Love Lake",
+    lat: 46.4715,
+    lng: -94.3985
+  },
+  {
+    name: "Upper Gull Lake",
+    label: "near Upper Gull Lake",
+    lat: 46.4880,
+    lng: -94.3820
+  },
+  {
+    name: "Margaret Lake",
+    label: "near Margaret Lake",
+    lat: 46.4953,
+    lng: -94.3640
+  },
+  {
+    name: "Roy Lake",
+    label: "near Roy Lake",
+    lat: 46.5055,
+    lng: -94.3060
+  },
+  {
+    name: "Nisswa Lake",
+    label: "near Nisswa Lake",
+    lat: 46.5140,
+    lng: -94.2985
+  },
+  {
+    name: "Round Lake",
+    label: "near Round Lake",
+    lat: 46.4445,
+    lng: -94.2970
+  },
+  {
+    name: "Boomingout Bay",
+    label: "near Boomingout Bay",
+    lat: 46.4780,
+    lng: -94.3890
+  },
+  {
+    name: "Ernie's on Gull",
+    label: "near Ernie's",
+    lat: 46.4095,
+    lng: -94.3190
+  },
+  {
+    name: "Sherwood Forest",
+    label: "near Sherwood Forest",
+    lat: 46.4905,
+    lng: -94.3530
+  },
+  {
+    name: "Lost Lake Lodge",
+    label: "near Lost Lake Lodge",
+    lat: 46.4940,
+    lng: -94.3465
+  },
+  {
+    name: "Squaw Point",
+    label: "near Squaw Point",
+    lat: 46.4385,
+    lng: -94.3210
+  },
+  {
+    name: "Rocky Point",
+    label: "near Rocky Point",
+    lat: 46.4170,
+    lng: -94.3685
   }
 ];
