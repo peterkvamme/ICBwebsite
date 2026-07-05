@@ -15,9 +15,9 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 const boatIcon = L.icon({
   iconUrl: "logo.png",
-  iconSize: [64, 64],
-  iconAnchor: [32, 32],
-  popupAnchor: [0, -32]
+  iconSize: [70, 70],
+  iconAnchor: [35, 35],
+  popupAnchor: [0, -35]
 });
 
 let boatMarker = null;
@@ -28,7 +28,6 @@ function distanceMeters(aLat, aLng, bLat, bLng) {
 
   const dLat = toRad(bLat - aLat);
   const dLng = toRad(bLng - aLng);
-
   const lat1 = toRad(aLat);
   const lat2 = toRad(bLat);
 
@@ -96,9 +95,7 @@ onValue(ref(db, "boat/current"), snapshot => {
     data.headline || "Available now";
 
   document.getElementById("area").textContent = `📍 ${locationLabel}`;
-
   document.getElementById("updated").textContent = timeAgo(data.updatedAt);
-
   document.getElementById("note").textContent = data.note || "";
 
   const mapsUrl =

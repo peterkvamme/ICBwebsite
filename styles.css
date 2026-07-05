@@ -4,9 +4,8 @@
 
 :root {
   --brand-blue: #38b6ff;
-  --soft-blue: #94d6ff;
   --text: #171717;
-  --muted: #2f4a5c;
+  --muted: #315065;
   --button: #ffffff;
   --button-text: #171717;
   --danger: #991b1b;
@@ -28,7 +27,7 @@ body {
 }
 
 .public-page {
-  padding-top: clamp(14px, 3vw, 28px);
+  padding-top: clamp(12px, 3vw, 24px);
 }
 
 .status-card,
@@ -42,77 +41,82 @@ body {
   padding: clamp(16px, 4vw, 26px);
 }
 
-.top-status-row {
+.status-row {
   display: grid;
-  grid-template-columns: clamp(112px, 30vw, 160px) 1fr;
-  gap: clamp(10px, 3vw, 18px);
-  align-items: center;
+  grid-template-columns: clamp(118px, 31vw, 172px) 1fr;
+  column-gap: clamp(12px, 3vw, 22px);
+  align-items: stretch;
 }
 
-.logo-column {
+.status-logo-wrap {
   display: flex;
+  align-items: stretch;
   justify-content: center;
-  align-items: center;
+  min-height: 100%;
 }
 
-.live-logo {
-  width: clamp(112px, 30vw, 155px);
-  height: auto;
+.status-logo {
+  width: 100%;
+  max-width: 172px;
+  height: 100%;
+  max-height: 205px;
   object-fit: contain;
 }
 
-.status-column {
+.status-info {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .brand-name {
   margin: 0 0 4px;
-  font-size: clamp(1.55rem, 5vw, 2.2rem);
-  font-weight: 950;
-  line-height: 0.98;
-  letter-spacing: -0.05em;
-}
-
-.status-card h1 {
-  margin: 0;
-  font-size: clamp(2rem, 7vw, 3rem);
+  font-size: clamp(1.55rem, 5.4vw, 2.45rem);
   font-weight: 950;
   line-height: 0.98;
   letter-spacing: -0.055em;
 }
 
-.location-line {
+.status-card h1 {
+  margin: 0;
+  font-size: clamp(1.85rem, 6.8vw, 3rem);
+  font-weight: 950;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.location-meta-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 10px;
   margin-top: 8px;
-  font-size: clamp(1.2rem, 4.5vw, 1.75rem);
+}
+
+.location-line {
+  font-size: clamp(1.1rem, 4.3vw, 1.65rem);
   font-weight: 850;
   line-height: 1.15;
 }
 
 .updated-text {
-  margin-top: 6px;
-  font-size: clamp(0.95rem, 3vw, 1.1rem);
+  font-size: clamp(0.85rem, 2.8vw, 1.05rem);
   font-weight: 500;
   color: var(--muted);
-  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .note-line {
-  margin-top: 8px;
-  margin-bottom: 0;
-  font-size: clamp(1.15rem, 4vw, 1.65rem);
+  margin: 6px 0 0;
+  font-size: clamp(1.1rem, 4vw, 1.6rem);
   font-weight: 850;
-  line-height: 1.2;
+  line-height: 1.18;
   color: var(--text);
 }
 
 .note-line:empty {
   display: none;
-}
-
-.actions {
-  display: grid;
-  grid-template-columns: 1fr;
-  margin-top: 14px;
 }
 
 .button,
@@ -121,7 +125,9 @@ button {
   align-items: center;
   justify-content: center;
   min-height: clamp(52px, 11vw, 64px);
+  width: 100%;
   padding: 14px 18px;
+  margin-top: clamp(12px, 3vw, 18px);
   border-radius: var(--radius-button);
   background: var(--button);
   color: var(--button-text);
@@ -157,7 +163,7 @@ button {
   text-align: center;
 }
 
-/* Captain page */
+/* Captain page support */
 
 .captain-top {
   width: min(100% - 24px, 820px);
