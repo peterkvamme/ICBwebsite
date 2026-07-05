@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <title>Ice Cream Boat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
@@ -12,7 +11,6 @@
 <body>
   <header class="site-header">
     <img src="logo.png" class="site-logo" alt="Ice Cream Boat logo">
-
     <div class="site-title-block">
       <h1>Ice Cream Boat</h1>
       <p>Live location on Gull Lake</p>
@@ -20,7 +18,7 @@
   </header>
 
   <main class="page">
-    <section class="status-card" id="statusCard">
+    <section class="status-card">
       <div class="status-topline">
         <span id="statusBadge" class="status-badge status-loading">LOCATING</span>
         <span id="updated" class="updated-text">Checking location...</span>
@@ -28,21 +26,15 @@
 
       <h2 id="headline">Finding the boat...</h2>
 
-      <div id="area" class="location-line">
-        Getting current location.
-      </div>
+      <div id="area" class="location-line">Getting current location.</div>
 
       <div id="note" class="note-line"></div>
+
       <div id="stale" class="warning-line"></div>
 
       <div class="actions">
-        <a id="mapsLink" class="button" target="_blank" rel="noopener">
-          Open in Maps
-        </a>
-
-        <a class="button button-light" href="sms:+12185551212">
-          Text the Boat
-        </a>
+        <a id="mapsLink" class="button" target="_blank" rel="noopener">Open in Maps</a>
+        <a class="button button-light" href="sms:+12185551212">Text the Boat</a>
       </div>
     </section>
 
