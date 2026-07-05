@@ -8,9 +8,13 @@ const db = getDatabase(app);
 
 let watchId = null;
 let lastPosition = null;
-let currentHeadline = "Available now — wave us down";
-let currentStatus = "available";
-let currentNote = "";
+
+let currentState = {
+  headline: "Available now",
+  status: "available",
+  note: "",
+  pauseUntil: null
+};
 
 const loginCard = document.getElementById("loginCard");
 const dashboard = document.getElementById("dashboard");
@@ -18,10 +22,12 @@ const statusControls = document.getElementById("statusControls");
 const trackingStatus = document.getElementById("trackingStatus");
 const gpsInfo = document.getElementById("gpsInfo");
 const sentInfo = document.getElementById("sentInfo");
+const noteInput = document.getElementById("noteInput");
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
@@ -37,23 +43,35 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-function writeBoatLocation(position) {
-  const { latitude, longitude, accuracy } = position.coords;
-  lastPosition = position;
-
-  gpsInfo.textContent = `GPS accuracy: ${Math.round(accuracy)} meters`;
-
-  return update(ref(db, "boat/current"), {
-    lat: latitude,
-    lng: longitude,
-    accuracy,
-    headline: currentHeadline,
-    status: currentStatus,
-    note: currentNote,
+function buildPayload(position = lastPosition) {
+  const payload = {
+    headline: currentState.headline,
+    status: currentState.status,
+    note: currentState.note,
+    pauseUntil: currentState.pauseUntil,
     updatedAt: Date.now()
-  }).then(() => {
-    sentInfo.textContent = `Last sent: ${new Date().toLocaleTimeString()}`;
-  });
+  };
+
+  if (position) {
+    payload.lat = position.coords.latitude;
+    payload.lng = position.coords.longitude;
+    payload.accuracy = position.coords.accuracy;
+  }
+
+  return payload;
+}
+
+async function sendUpdate(position = lastPosition) {
+  const payload = buildPayload(position);
+
+  await update(ref(db, "boat/current"), payload);
+
+  trackingStatus.textContent = payload.headline;
+  sentInfo.textContent = `Last sent: ${new Date().toLocaleTimeString()}`;
+
+  if (position) {
+    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
+  }
 }
 
 document.getElementById("startBtn").addEventListener("click", () => {
@@ -67,9 +85,12 @@ document.getElementById("startBtn").addEventListener("click", () => {
   trackingStatus.textContent = "Tracking active";
 
   watchId = navigator.geolocation.watchPosition(
-    pos => writeBoatLocation(pos),
-    err => {
-      trackingStatus.textContent = `GPS error: ${err.message}`;
+    async position => {
+      lastPosition = position;
+      await sendUpdate(position);
+    },
+    error => {
+      trackingStatus.textContent = `GPS error: ${error.message}`;
     },
     {
       enableHighAccuracy: true,
@@ -85,52 +106,33 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
     watchId = null;
   }
 
-  currentHeadline = "Done for today";
-  currentStatus = "done";
-
-  await update(ref(db, "boat/current"), {
-    headline: currentHeadline,
-    status: currentStatus,
+  currentState = {
+    headline: "Done for today",
+    status: "done",
     note: "Location sharing is off.",
-    updatedAt: Date.now()
-  });
+    pauseUntil: null
+  };
 
-  trackingStatus.textContent = "Stopped";
+  await sendUpdate();
 });
 
 document.querySelectorAll("[data-headline]").forEach(button => {
   button.addEventListener("click", async () => {
-    currentHeadline = button.dataset.headline;
-    currentStatus = button.dataset.status;
-
-    const patch = {
-      headline: currentHeadline,
-      status: currentStatus,
-      updatedAt: Date.now()
-    };
+    currentState.headline = button.dataset.headline;
+    currentState.status = button.dataset.status;
+    currentState.note = noteInput.value.trim();
 
     if (button.dataset.pause) {
-      patch.pauseUntil = Date.now() + Number(button.dataset.pause) * 60 * 1000;
+      currentState.pauseUntil = Date.now() + Number(button.dataset.pause) * 60 * 1000;
     } else {
-      patch.pauseUntil = null;
+      currentState.pauseUntil = null;
     }
 
-    if (lastPosition) {
-      await writeBoatLocation(lastPosition);
-    }
-
-    await update(ref(db, "boat/current"), patch);
-    trackingStatus.textContent = currentHeadline;
+    await sendUpdate();
   });
 });
 
 document.getElementById("saveNoteBtn").addEventListener("click", async () => {
-  currentNote = document.getElementById("noteInput").value.trim();
-
-  await update(ref(db, "boat/current"), {
-    note: currentNote,
-    updatedAt: Date.now()
-  });
-
-  if (lastPosition) await writeBoatLocation(lastPosition);
+  currentState.note = noteInput.value.trim();
+  await sendUpdate();
 });
