@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Captain Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Captain Dashboard</h1>
+    <p class="subtitle">Private boat location controls</p>
+  </header>
+
+  <main>
+    <section class="card" id="loginCard">
+      <h2>Login</h2>
+      <div class="grid">
+        <input id="email" type="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+        <button id="loginBtn">Login</button>
+      </div>
+      <p id="loginMsg" class="small"></p>
+    </section>
+
+    <section class="card" id="dashboard" style="display:none;">
+      <div id="trackingStatus" class="status">Not tracking</div>
+      <div id="gpsInfo" class="small"></div>
+      <div id="sentInfo" class="small"></div>
+
+      <div class="actions">
+        <button id="startBtn">Start Sharing Location</button>
+        <button id="stopBtn" class="danger">Stop Sharing</button>
+      </div>
+    </section>
+
+    <section class="card" id="statusControls" style="display:none;">
+      <h2>Status</h2>
+      <div class="grid">
+        <button data-headline="Available now — wave us down" data-status="available">Available Now</button>
+        <button data-headline="Back in 15 minutes" data-status="paused" data-pause="15">Back in 15</button>
+        <button data-headline="Back in 30 minutes" data-status="paused" data-pause="30">Back in 30</button>
+        <button data-headline="Starting soon" data-status="starting_soon">Starting Soon</button>
+        <button data-headline="Weather delay" data-status="weather_delay">Weather Delay</button>
+        <button data-headline="Done for today" data-status="done">Done Today</button>
+      </div>
+
+      <h3>Optional note</h3>
+      <input id="noteInput" placeholder="Example: Cruising the west shore">
+      <button id="saveNoteBtn" class="secondary">Save Note</button>
+    </section>
+  </main>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="captain.js"></script>
+</body>
+</html>
