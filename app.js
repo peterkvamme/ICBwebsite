@@ -13,6 +13,13 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
 
+const boatIcon = L.icon({
+  iconUrl: "logo.png",
+  iconSize: [64, 64],
+  iconAnchor: [32, 32],
+  popupAnchor: [0, -32]
+});
+
 let boatMarker = null;
 
 function distanceMeters(aLat, aLng, bLat, bLng) {
@@ -90,9 +97,9 @@ onValue(ref(db, "boat/current"), snapshot => {
 
   document.getElementById("area").textContent = `📍 ${locationLabel}`;
 
-  document.getElementById("note").textContent = data.note || "";
-
   document.getElementById("updated").textContent = timeAgo(data.updatedAt);
+
+  document.getElementById("note").textContent = data.note || "";
 
   const mapsUrl =
     `https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}`;
@@ -102,7 +109,10 @@ onValue(ref(db, "boat/current"), snapshot => {
   mapsLink.style.display = "flex";
 
   if (!boatMarker) {
-    boatMarker = L.marker(latLng).addTo(map).bindPopup("Ice Cream Boat");
+    boatMarker = L.marker(latLng, { icon: boatIcon })
+      .addTo(map)
+      .bindPopup("Ice Cream Boat");
+
     map.setView(latLng, 15);
   } else {
     boatMarker.setLatLng(latLng);
