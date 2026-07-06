@@ -30,6 +30,7 @@ function distanceMeters(aLat, aLng, bLat, bLng) {
   const lat2 = toRad(bLat);
   const h = Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
@@ -50,30 +51,55 @@ function getLocationLabel(lat, lng) {
 
 function timeAgo(timestamp) {
   if (!timestamp) return "";
+
   const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
   if (seconds < 10) return "Updated just now";
   if (seconds < 60) return `Updated ${seconds} seconds ago`;
+
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `Updated ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+
   const hours = Math.floor(minutes / 60);
   return `Updated ${hours} hour${hours === 1 ? "" : "s"} ago`;
 }
 
-function getMapsUrl(lat, lng) {
+function formatClockTime(timestamp) {
+  if (!timestamp) return "";
+
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function getMapsUrl(lat, lng, updatedAt) {
   const isiPhone = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  if (isiPhone) return `http://maps.apple.com/?ll=${lat},${lng}`;
-  return `geo:${lat},${lng}?q=${lat},${lng}`;
+  const updateTime = formatClockTime(updatedAt);
+  const label = updateTime
+    ? `Ice Cream Boat - location at ${updateTime}`
+    : "Ice Cream Boat";
+
+  const encodedLabel = encodeURIComponent(label);
+
+  if (isiPhone) {
+    return `https://maps.apple.com/?q=${encodedLabel}&ll=${lat},${lng}`;
+  }
+
+  return `geo:${lat},${lng}?q=${lat},${lng}(${encodedLabel})`;
 }
 
 function updatePage(data) {
   const latLng = [data.lat, data.lng];
-  document.getElementById("headline").textContent = data.headline || "Available now";
+
+  document.getElementById("headline").textContent =
+    data.headline || "Available now";
+
   document.getElementById("area").textContent = `📍 ${getLocationLabel(data.lat, data.lng)}`;
   document.getElementById("updated").textContent = timeAgo(data.updatedAt);
   document.getElementById("note").textContent = data.note || "";
 
   const mapsLink = document.getElementById("mapsLink");
-  mapsLink.href = getMapsUrl(data.lat, data.lng);
+  mapsLink.href = getMapsUrl(data.lat, data.lng, data.updatedAt);
   mapsLink.style.display = "flex";
 
   if (!boatMarker) {
