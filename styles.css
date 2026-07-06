@@ -43,14 +43,14 @@ body {
 }
 
 .status-card {
-  padding: clamp(16px, 4vw, 26px);
+  padding: clamp(18px, 4vw, 28px);
 }
 
 .status-layout {
   display: grid;
-  grid-template-columns: clamp(132px, 34vw, 196px) minmax(0, 1fr);
-  gap: clamp(12px, 3vw, 22px);
-  align-items: stretch;
+  grid-template-columns: clamp(88px, 23vw, 132px) minmax(0, 1fr);
+  gap: clamp(14px, 4vw, 24px);
+  align-items: center;
 }
 
 .logo-column {
@@ -61,24 +61,20 @@ body {
 }
 
 .status-logo {
-  width: 110%;
-  max-width: 210px;
-  height: 100%;
-  max-height: 238px;
+  width: 100%;
+  max-width: 132px;
+  max-height: 190px;
   object-fit: contain;
   display: block;
 }
 
 .text-column {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .brand-name {
-  margin: 0 0 4px;
-  font-size: clamp(1.45rem, 5.1vw, 2.25rem);
+  margin: 0 0 3px;
+  font-size: clamp(1.35rem, 4.8vw, 2.2rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.035em;
@@ -86,7 +82,7 @@ body {
 
 .status-card h1 {
   margin: 0;
-  font-size: clamp(1.85rem, 6.8vw, 3rem);
+  font-size: clamp(1.75rem, 6.4vw, 3rem);
   font-weight: 850;
   line-height: 1;
   letter-spacing: -0.045em;
@@ -98,27 +94,27 @@ body {
   flex-wrap: wrap;
   column-gap: 10px;
   row-gap: 2px;
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
 .location-line {
-  font-size: clamp(1.08rem, 4.15vw, 1.62rem);
+  font-size: clamp(1rem, 3.9vw, 1.55rem);
   font-weight: 700;
   line-height: 1.15;
 }
 
 .updated-text {
-  font-size: clamp(0.82rem, 2.65vw, 1rem);
+  font-size: clamp(0.78rem, 2.55vw, 0.98rem);
   font-weight: 500;
   color: var(--muted);
   white-space: nowrap;
 }
 
 .note-line {
-  margin: 5px 0 0;
-  font-size: clamp(1.08rem, 4vw, 1.55rem);
+  margin: 4px 0 0;
+  font-size: clamp(1rem, 3.75vw, 1.45rem);
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.16;
   color: var(--text);
 }
 
@@ -131,16 +127,16 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: clamp(56px, 12vw, 70px);
-  margin-top: clamp(12px, 3vw, 18px);
-  padding: 15px 18px;
+  min-height: clamp(48px, 10vw, 62px);
+  margin-top: clamp(10px, 2.8vw, 16px);
+  padding: 13px 16px;
   border-radius: var(--radius-button);
   background: var(--button-bg);
   color: var(--button-text);
   text-decoration: none;
   text-align: center;
   font: inherit;
-  font-size: clamp(1rem, 3.8vw, 1.2rem);
+  font-size: clamp(0.95rem, 3.45vw, 1.12rem);
   font-weight: 800;
   border: 0;
 }
