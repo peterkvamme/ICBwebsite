@@ -33,7 +33,7 @@ body{
   align-items:center
 }
 .logo-column{display:flex;align-items:center;justify-content:center;min-width:0}
-.status-logo{width:100%;max-width:132px;max-height:190px;object-fit:contain;display:block}
+.status-logo{width:97%;max-width:128px;max-height:184px;object-fit:contain;display:block}
 .text-column{min-width:0}
 .brand-name{
   margin:0 0 3px;
