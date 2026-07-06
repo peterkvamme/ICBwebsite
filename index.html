@@ -4,15 +4,12 @@
   <meta charset="utf-8">
   <title>Ice Cream Boat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
-
 <body>
   <main class="page public-page">
     <section class="status-card">
@@ -20,34 +17,27 @@
         <div class="logo-column">
           <img src="logo-header.png" class="status-logo" alt="Ice Cream Boat logo">
         </div>
-
         <div class="text-column">
           <div class="brand-name">Ice Cream Boat</div>
           <h1 id="headline">Finding the boat...</h1>
-
           <div class="location-updated-row">
             <div id="area" class="location-line">Getting current location.</div>
             <div id="updated" class="updated-text"></div>
           </div>
-
           <div id="note" class="note-line"></div>
-
           <a id="mapsLink" class="button" target="_blank" rel="noopener">
             Open latest location in Maps
           </a>
         </div>
       </div>
     </section>
-
     <section class="map-card">
       <div id="map"></div>
     </section>
-
     <section class="about-section">
       <p>Ice Cream Boat on Gull Lake, MN</p>
     </section>
   </main>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="firebase-config.js"></script>
   <script src="landmarks.js"></script>
