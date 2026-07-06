@@ -28,12 +28,10 @@ let boatMarker = null;
 
 function distanceMeters(aLat, aLng, bLat, bLng) {
   const R = 6371000;
-
-  const toRad = x => x * Math.PI / 180;
+  const toRad = value => value * Math.PI / 180;
 
   const dLat = toRad(bLat - aLat);
   const dLng = toRad(bLng - aLng);
-
   const lat1 = toRad(aLat);
   const lat2 = toRad(bLat);
 
@@ -47,7 +45,6 @@ function distanceMeters(aLat, aLng, bLat, bLng) {
 }
 
 function getLocationLabel(lat, lng) {
-
   const landmarks = window.BOAT_LANDMARKS || [];
 
   if (!landmarks.length) {
@@ -55,14 +52,9 @@ function getLocationLabel(lat, lng) {
   }
 
   const ranked = landmarks
-    .map(l => ({
-      ...l,
-      meters: distanceMeters(
-        lat,
-        lng,
-        l.lat,
-        l.lng
-      )
+    .map(landmark => ({
+      ...landmark,
+      meters: distanceMeters(lat, lng, landmark.lat, landmark.lng)
     }))
     .sort((a, b) => a.meters - b.meters);
 
@@ -72,23 +64,18 @@ function getLocationLabel(lat, lng) {
 }
 
 function timeAgo(timestamp) {
-
   if (!timestamp) return "";
 
-  const seconds = Math.floor(
-    (Date.now() - timestamp) / 1000
-  );
+  const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
 
-  if (seconds < 10)
-    return "Updated just now";
-
-  if (seconds < 60)
-    return `Updated ${seconds} seconds ago`;
+  if (seconds < 10) return "Updated just now";
+  if (seconds < 60) return `Updated ${seconds} seconds ago`;
 
   const minutes = Math.floor(seconds / 60);
 
-  if (minutes < 60)
+  if (minutes < 60) {
     return `Updated ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  }
 
   const hours = Math.floor(minutes / 60);
 
@@ -96,49 +83,35 @@ function timeAgo(timestamp) {
 }
 
 function updatePage(data) {
-
   const latLng = [data.lat, data.lng];
+  const locationLabel = getLocationLabel(data.lat, data.lng);
 
   document.getElementById("headline").textContent =
     data.headline || "Available now";
 
-  document.getElementById("area").textContent =
-    "📍 " + getLocationLabel(data.lat, data.lng);
+  document.getElementById("area").textContent = `📍 ${locationLabel}`;
+  document.getElementById("updated").textContent = timeAgo(data.updatedAt);
+  document.getElementById("note").textContent = data.note || "";
 
-  document.getElementById("updated").textContent =
-    timeAgo(data.updatedAt);
-
-  document.getElementById("note").textContent =
-    data.note || "";
-
-  const mapsLink =
-    document.getElementById("mapsLink");
-
+  const mapsLink = document.getElementById("mapsLink");
   mapsLink.href =
     `https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}`;
+  mapsLink.style.display = "flex";
 
   if (!boatMarker) {
-
-    boatMarker = L.marker(latLng, {
-      icon: boatIcon
-    })
+    boatMarker = L.marker(latLng, { icon: boatIcon })
       .addTo(map)
       .bindPopup("Ice Cream Boat");
 
     map.setView(latLng, 15);
-
   } else {
-
     boatMarker.setLatLng(latLng);
-
   }
-
 }
 
 const boatRef = ref(db, "boat/current");
 
 onValue(boatRef, snapshot => {
-
   const data = snapshot.val();
 
   if (
@@ -146,7 +119,6 @@ onValue(boatRef, snapshot => {
     typeof data.lat !== "number" ||
     typeof data.lng !== "number"
   ) {
-
     document.getElementById("headline").textContent =
       "Not available right now";
 
@@ -154,51 +126,26 @@ onValue(boatRef, snapshot => {
       "Check back soon.";
 
     document.getElementById("updated").textContent = "";
-
     document.getElementById("note").textContent = "";
-
+    document.getElementById("mapsLink").style.display = "none";
     return;
-
   }
 
   updatePage(data);
-
 });
-
-//
-// Refresh when returning to the page
-//
 
 document.addEventListener("visibilitychange", () => {
-
   if (document.visibilityState === "visible") {
-
     window.location.reload();
-
   }
-
 });
-
-//
-// Refresh when window/tab gains focus
-//
 
 window.addEventListener("focus", () => {
-
   window.location.reload();
-
 });
 
-//
-// Backup refresh every 15 minutes
-//
-
 setInterval(() => {
-
   if (document.visibilityState === "visible") {
-
     window.location.reload();
-
   }
-
 }, 15 * 60 * 1000);
