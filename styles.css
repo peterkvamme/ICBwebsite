@@ -61,23 +61,23 @@ body{
 .updated-text{font-size:clamp(.78rem,2.55vw,.98rem);font-weight:500;color:var(--muted);white-space:nowrap}
 .note-line{margin:4px 0 0;font-size:clamp(1rem,3.75vw,1.45rem);font-weight:700;line-height:1.16;color:var(--text)}
 .note-line:empty{display:none}
-.button{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:100%;
-  min-height:clamp(48px,10vw,62px);
-  margin-top:clamp(10px,2.8vw,16px);
-  padding:13px 16px;
-  border-radius:var(--radius-button);
-  background:var(--button-bg);
-  color:var(--button-text);
-  text-decoration:none;
-  text-align:center;
-  font:inherit;
-  font-size:clamp(.95rem,3.45vw,1.12rem);
-  font-weight:800;
-  border:0
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(42px, 8vw, 52px);
+  margin-top: clamp(8px, 2vw, 12px);
+  padding: 10px 16px;
+  border-radius: var(--radius-button);
+  background: var(--button-bg);
+  color: var(--button-text);
+  text-decoration: none;
+  text-align: center;
+  font: inherit;
+  font-size: clamp(0.95rem, 3.45vw, 1.12rem);
+  font-weight: 800;
+  border: 0;
 }
 .map-card{margin-top:14px;padding:10px;overflow:hidden}
 #map{width:100%;aspect-ratio:1/1;border-radius:calc(var(--radius-card) - 6px);overflow:hidden}
