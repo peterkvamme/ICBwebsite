@@ -14,7 +14,7 @@
 
 <body>
   <header class="captain-top">
-    <img src="logo.png" class="captain-logo" alt="Ice Cream Boat logo">
+    <img src="logo-header.png" class="captain-logo" alt="Ice Cream Boat logo">
     <div>
       <h1>Captain Dashboard</h1>
       <p>Private boat controls</p>
@@ -40,8 +40,26 @@
       <p id="gpsInfo" class="small"></p>
       <p id="sentInfo" class="small"></p>
 
-      <h3>Current customer announcement</h3>
-      <div id="currentNote" class="note-preview">No announcement.</div>
+      <h3>What customers see</h3>
+      <section class="status-card captain-preview-card">
+        <div class="status-layout">
+          <div class="logo-column">
+            <img src="logo-header.png" class="status-logo" alt="Ice Cream Boat logo">
+          </div>
+          <div class="text-column">
+            <div class="brand-name">Ice Cream Boat</div>
+            <h1 id="previewHeadline">Finding the boat...</h1>
+            <div class="location-updated-row">
+              <div id="previewArea" class="location-line">Getting current location.</div>
+              <div id="previewUpdated" class="updated-text"></div>
+            </div>
+            <div id="previewNote" class="note-line"></div>
+            <a id="previewMapsLink" class="button" target="_blank" rel="noopener">
+              Open Latest Location
+            </a>
+          </div>
+        </div>
+      </section>
 
       <div class="actions">
         <button id="startBtn">Start Sharing Location</button>
@@ -53,26 +71,20 @@
       <h2>Status</h2>
 
       <div class="grid status-grid">
-        <button data-headline="Available now" data-status="available">Available Now</button>
-        <button data-headline="Back in 30 minutes" data-status="paused" data-pause="30">Back in 30</button>
-        <button data-headline="Back in 1 hour" data-status="paused" data-pause="60">Back in 1 Hour</button>
-        <button data-headline="Back in 2 hours" data-status="paused" data-pause="120">Back in 2 Hours</button>
-        <button data-headline="Starting soon" data-status="starting_soon">Starting Soon</button>
-        <button data-headline="Weather delay" data-status="weather_delay">Weather Delay</button>
-        <button data-headline="Done for today" data-status="done">Done Today</button>
+        <button data-headline="Selling now on Gull Lake" data-status="selling">Selling now on Gull Lake</button>
+        <button data-headline="Starting Soon" data-status="starting_soon">Starting Soon</button>
+        <button data-headline="On a break, be back soon" data-status="paused">On a break, be back soon</button>
+        <button data-headline="Not selling today" data-status="done">Not selling today</button>
       </div>
-
-      <h3>Custom status</h3>
-      <input id="customStatusInput" placeholder="Example: Available near Bar Harbor">
-      <button id="saveCustomStatusBtn" class="secondary">Set Status</button>
 
       <h3>Customer announcement</h3>
       <input id="noteInput" placeholder="Example: Back at 2:30 near Bar Harbor">
-      <button id="saveNoteBtn" class="secondary">Save Announcement</button>
+      <button id="saveStatusAnnouncementBtn" class="secondary">Set Status/Announcement</button>
     </section>
   </main>
 
   <script src="firebase-config.js"></script>
+  <script src="landmarks.js"></script>
   <script type="module" src="captain.js"></script>
 </body>
 </html>

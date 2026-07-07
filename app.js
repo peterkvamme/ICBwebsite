@@ -95,11 +95,11 @@ function updatePage(data) {
     data.headline || "Available now";
 
   document.getElementById("area").textContent = `📍 ${getLocationLabel(data.lat, data.lng)}`;
-  document.getElementById("updated").textContent = timeAgo(data.updatedAt);
+  document.getElementById("updated").textContent = timeAgo(data.locationUpdatedAt || data.updatedAt);
   document.getElementById("note").textContent = data.note || "";
 
   const mapsLink = document.getElementById("mapsLink");
-  mapsLink.href = getMapsUrl(data.lat, data.lng, data.updatedAt);
+  mapsLink.href = getMapsUrl(data.lat, data.lng, data.locationUpdatedAt || data.updatedAt);
   mapsLink.style.display = "flex";
 
   if (!boatMarker) {

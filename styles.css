@@ -152,3 +152,6 @@ button{
 button.secondary{background:#f1f1f1;color:#1d1d1f;margin-top:10px}
 button.danger{background:var(--danger);color:white}
 @media (min-width:560px){.status-grid{grid-template-columns:1fr 1fr}}
+.captain-preview-card{box-shadow:none;margin-top:8px}
+.actions{display:grid;gap:10px;margin-top:16px}
+button.selected{outline:4px solid var(--brand-blue);outline-offset:3px}
