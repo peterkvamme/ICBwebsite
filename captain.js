@@ -35,8 +35,23 @@ const previewArea = document.getElementById("previewArea");
 const previewUpdated = document.getElementById("previewUpdated");
 const previewNote = document.getElementById("previewNote");
 const previewMapsLink = document.getElementById("previewMapsLink");
+const toggleLocationVisibilityBtn = document.getElementById("toggleLocationVisibilityBtn");
 
 const boatRef = ref(db, "boat/current");
+
+function isLocationVisible(data = latestBoatData) {
+  return data?.showLocation !== false;
+}
+
+function updateLocationVisibilityButton(data = latestBoatData) {
+  if (!toggleLocationVisibilityBtn) return;
+
+  const visible = isLocationVisible(data);
+  toggleLocationVisibilityBtn.textContent = visible
+    ? "Hide Location from Customers"
+    : "Show Location to Customers";
+  toggleLocationVisibilityBtn.classList.toggle("location-hidden", !visible);
+}
 
 function updateTrackingBanner() {
   const isTracking = watchId !== null;
@@ -135,9 +150,9 @@ function getMapsUrl(lat, lng, updatedAt) {
 }
 
 function renderCustomerPreview(data) {
-  if (!data || typeof data.lat !== "number" || typeof data.lng !== "number") {
+  if (!data || data.showLocation === false || typeof data.lat !== "number" || typeof data.lng !== "number") {
     previewHeadline.textContent = data?.headline || "Not available right now";
-    previewArea.textContent = "Check back soon.";
+    previewArea.textContent = data?.showLocation === false ? "Location is hidden from customers." : "Check back soon.";
     previewUpdated.textContent = "";
     previewNote.textContent = data?.note || "";
     previewMapsLink.style.display = "none";
@@ -155,6 +170,7 @@ function renderCustomerPreview(data) {
 
 onValue(boatRef, snapshot => {
   latestBoatData = snapshot.val();
+  updateLocationVisibilityButton(latestBoatData);
   renderCustomerPreview(latestBoatData);
 });
 
@@ -264,6 +280,7 @@ async function sendStatusUpdate() {
 
   const payload = buildStatusPayload();
   latestBoatData = { ...(latestBoatData || {}), ...payload };
+  updateLocationVisibilityButton(latestBoatData);
   renderCustomerPreview(latestBoatData);
   await update(boatRef, payload);
 }
@@ -336,6 +353,19 @@ document.querySelectorAll("[data-headline]").forEach(button => {
       option.classList.toggle("selected", option === button);
     });
   });
+});
+
+toggleLocationVisibilityBtn.addEventListener("click", async () => {
+  const nextShowLocation = !isLocationVisible();
+  const payload = {
+    showLocation: nextShowLocation,
+    visibilityUpdatedAt: Date.now()
+  };
+
+  latestBoatData = { ...(latestBoatData || {}), ...payload };
+  updateLocationVisibilityButton(latestBoatData);
+  renderCustomerPreview(latestBoatData);
+  await update(boatRef, payload);
 });
 
 document.getElementById("saveStatusAnnouncementBtn").addEventListener("click", sendStatusUpdate);

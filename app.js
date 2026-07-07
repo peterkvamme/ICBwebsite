@@ -115,12 +115,18 @@ const boatRef = ref(db, "boat/current");
 onValue(boatRef, snapshot => {
   const data = snapshot.val();
 
-  if (!data || typeof data.lat !== "number" || typeof data.lng !== "number") {
-    document.getElementById("headline").textContent = "Not available right now";
-    document.getElementById("area").textContent = "Check back soon.";
+  if (!data || data.showLocation === false || typeof data.lat !== "number" || typeof data.lng !== "number") {
+    document.getElementById("headline").textContent = data?.headline || "Not available right now";
+    document.getElementById("area").textContent = data?.showLocation === false ? "Location is hidden right now." : "Check back soon.";
     document.getElementById("updated").textContent = "";
-    document.getElementById("note").textContent = "";
+    document.getElementById("note").textContent = data?.note || "";
     document.getElementById("mapsLink").style.display = "none";
+
+    if (boatMarker) {
+      map.removeLayer(boatMarker);
+      boatMarker = null;
+      map.setView(DEFAULT_CENTER, 12);
+    }
     return;
   }
 
