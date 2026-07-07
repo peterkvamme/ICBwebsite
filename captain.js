@@ -10,6 +10,8 @@ let watchId = null;
 let lastPosition = null;
 let latestBoatData = null;
 let locationSendTimer = null;
+let lastLocationSentAt = 0;
+let locationSendInFlight = false;
 const LOCATION_SEND_INTERVAL_MS = 10000;
 
 let currentState = {
@@ -184,15 +186,33 @@ function buildLocationPayload(position = lastPosition) {
   return payload;
 }
 
-async function sendLocationUpdate(position = lastPosition) {
-  const payload = buildLocationPayload(position);
-  await update(boatRef, payload);
+async function sendLocationUpdate(position = lastPosition, options = {}) {
+  const now = Date.now();
 
-  updateTrackingBanner();
-  sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
+  // Android can provide GPS callbacks about once per second. Keep GPS listening live,
+  // but throttle Firebase writes here so every browser/device follows the same cadence.
+  if (!options.force && now - lastLocationSentAt < LOCATION_SEND_INTERVAL_MS) {
+    return;
+  }
 
-  if (position) {
-    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
+  if (locationSendInFlight) {
+    return;
+  }
+
+  locationSendInFlight = true;
+  try {
+    const payload = buildLocationPayload(position);
+    await update(boatRef, payload);
+    lastLocationSentAt = now;
+
+    updateTrackingBanner();
+    sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
+
+    if (position) {
+      gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
+    }
+  } finally {
+    locationSendInFlight = false;
   }
 }
 
@@ -224,7 +244,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
       lastPosition = position;
 
       if (isFirstFix) {
-        await sendLocationUpdate(position);
+        await sendLocationUpdate(position, { force: true });
       }
     },
     error => {
