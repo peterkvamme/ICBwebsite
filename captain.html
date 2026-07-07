@@ -28,6 +28,35 @@
       <p id="loginMsg" class="small"></p>
     </section>
 
+    <section class="card tracking-card tracking-off" id="dashboard" style="display:none;">
+      <h2 id="trackingStatus" class="tracking-title">Captain Dashboard — Not Tracking</h2>
+
+      <p id="gpsInfo" class="small tracking-detail"></p>
+      <p id="sentInfo" class="small tracking-detail"></p>
+
+      <div class="actions">
+        <button id="startBtn">Start Sharing Location</button>
+        <button id="stopBtn" class="danger">Stop Sharing Location</button>
+      </div>
+    </section>
+
+    <section class="card" id="statusControls" style="display:none;">
+      <h2>Status</h2>
+
+      <div class="grid status-grid three-status-grid">
+        <button data-headline="Selling now on Gull Lake!" data-status="selling">Selling now on Gull Lake!</button>
+        <button data-headline="On a break, be back soon" data-status="paused">On a break, be back soon</button>
+        <button data-headline="Done for the day, see you again soon" data-status="done">Done for the day, see you again soon</button>
+      </div>
+
+      <h3>Custom status</h3>
+      <input id="customStatusInput" placeholder="Example: Selling now near Ernie's">
+
+      <h3>Customer announcement</h3>
+      <input id="noteInput" placeholder="Example: Back at 2:30 near Bar Harbor">
+      <button id="saveStatusAnnouncementBtn" class="secondary">Set Status/Announcement</button>
+    </section>
+
     <section class="status-card captain-preview-card" id="captainPreview" style="display:none;">
       <div class="status-layout">
         <div class="logo-column">
@@ -48,35 +77,6 @@
       </div>
     </section>
 
-    <section class="card tracking-card tracking-off" id="dashboard" style="display:none;">
-      <h2 id="trackingStatus" class="tracking-title">Captain Dashboard — Not Tracking</h2>
-
-      <p id="gpsInfo" class="small tracking-detail"></p>
-      <p id="sentInfo" class="small tracking-detail"></p>
-
-      <div class="actions">
-        <button id="startBtn">Start Sharing Location</button>
-        <button id="stopBtn" class="danger">Stop Sharing</button>
-      </div>
-    </section>
-
-    <section class="card" id="statusControls" style="display:none;">
-      <h2>Status</h2>
-
-      <div class="grid status-grid">
-        <button data-headline="Selling now on Gull Lake" data-status="selling">Selling now on Gull Lake</button>
-        <button data-headline="Starting Soon" data-status="starting_soon">Starting Soon</button>
-        <button data-headline="On a break, be back soon" data-status="paused">On a break, be back soon</button>
-        <button data-headline="Not selling today" data-status="done">Not selling today</button>
-      </div>
-
-      <h3>Custom status</h3>
-      <input id="customStatusInput" placeholder="Example: Selling now near Ernie's">
-
-      <h3>Customer announcement</h3>
-      <input id="noteInput" placeholder="Example: Back at 2:30 near Bar Harbor">
-      <button id="saveStatusAnnouncementBtn" class="secondary">Set Status/Announcement</button>
-    </section>
   </main>
 
   <script src="firebase-config.js"></script>

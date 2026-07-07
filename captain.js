@@ -11,7 +11,7 @@ let lastPosition = null;
 let latestBoatData = null;
 
 let currentState = {
-  headline: "Selling now on Gull Lake",
+  headline: "Selling now on Gull Lake!",
   status: "selling",
   note: "",
   pauseUntil: null
@@ -141,7 +141,7 @@ function renderCustomerPreview(data) {
   }
 
   const locationUpdatedAt = data.locationUpdatedAt || data.updatedAt;
-  previewHeadline.textContent = data.headline || "Selling now on Gull Lake";
+  previewHeadline.textContent = data.headline || "Selling now on Gull Lake!";
   previewArea.textContent = `📍 ${getLocationLabel(data.lat, data.lng)}`;
   previewUpdated.textContent = timeAgo(locationUpdatedAt);
   previewNote.textContent = data.note || "";
@@ -198,14 +198,13 @@ async function sendStatusUpdate() {
   const typedStatus = customStatusInput.value.trim();
   const typedNote = noteInput.value.trim();
 
-  currentState.headline = typedStatus || currentState.headline || "Selling now on Gull Lake";
+  currentState.headline = typedStatus || currentState.headline || "Selling now on Gull Lake!";
   currentState.note = typedNote;
 
   const payload = buildStatusPayload();
   latestBoatData = { ...(latestBoatData || {}), ...payload };
   renderCustomerPreview(latestBoatData);
   await update(boatRef, payload);
-  sentInfo.textContent = `Last status sent: ${new Date().toLocaleTimeString()}`;
 }
 
 document.getElementById("startBtn").addEventListener("click", () => {
@@ -239,7 +238,7 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
   }
 
   currentState = {
-    headline: "Not selling today",
+    headline: "Done for the day, see you again soon",
     status: "done",
     note: noteInput.value.trim() || "Location sharing is off.",
     pauseUntil: null
