@@ -20,9 +20,11 @@ let currentState = {
 const loginCard = document.getElementById("loginCard");
 const dashboard = document.getElementById("dashboard");
 const statusControls = document.getElementById("statusControls");
+const captainPageTitle = document.getElementById("captainPageTitle");
 const trackingStatus = document.getElementById("trackingStatus");
 const gpsInfo = document.getElementById("gpsInfo");
 const sentInfo = document.getElementById("sentInfo");
+const customStatusInput = document.getElementById("customStatusInput");
 const noteInput = document.getElementById("noteInput");
 const previewHeadline = document.getElementById("previewHeadline");
 const previewArea = document.getElementById("previewArea");
@@ -31,6 +33,13 @@ const previewNote = document.getElementById("previewNote");
 const previewMapsLink = document.getElementById("previewMapsLink");
 
 const boatRef = ref(db, "boat/current");
+
+function updateCaptainTitle() {
+  const sharingText = watchId === null
+    ? "NOT sharing location from this page"
+    : "sharing location from this page";
+  captainPageTitle.textContent = `Captain Dashboard - ${sharingText}`;
+}
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
@@ -47,6 +56,7 @@ onAuthStateChanged(auth, user => {
     loginCard.style.display = "none";
     dashboard.style.display = "block";
     statusControls.style.display = "block";
+    updateCaptainTitle();
   }
 });
 
@@ -182,14 +192,16 @@ async function sendLocationUpdate(position = lastPosition) {
 }
 
 async function sendStatusUpdate() {
+  const typedStatus = customStatusInput.value.trim();
   const typedNote = noteInput.value.trim();
-  if (typedNote || currentState.status !== "done") {
-    currentState.note = typedNote;
-  }
+
+  currentState.headline = typedStatus || currentState.headline || "Selling now on Gull Lake";
+  currentState.note = typedNote;
 
   const payload = buildStatusPayload();
+  latestBoatData = { ...(latestBoatData || {}), ...payload };
+  renderCustomerPreview(latestBoatData);
   await update(boatRef, payload);
-  renderCustomerPreview({ ...(latestBoatData || {}), ...payload });
   sentInfo.textContent = `Last status sent: ${new Date().toLocaleTimeString()}`;
 }
 
@@ -212,12 +224,14 @@ document.getElementById("startBtn").addEventListener("click", () => {
     },
     { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
   );
+  updateCaptainTitle();
 });
 
 document.getElementById("stopBtn").addEventListener("click", async () => {
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
+    updateCaptainTitle();
   }
 
   currentState = {
@@ -226,6 +240,7 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
     note: noteInput.value.trim() || "Location sharing is off.",
     pauseUntil: null
   };
+  customStatusInput.value = currentState.headline;
   await sendStatusUpdate();
   trackingStatus.textContent = "Not tracking";
 });
@@ -235,6 +250,7 @@ document.querySelectorAll("[data-headline]").forEach(button => {
     currentState.headline = button.dataset.headline;
     currentState.status = button.dataset.status;
     currentState.pauseUntil = null;
+    customStatusInput.value = currentState.headline;
 
     document.querySelectorAll("[data-headline]").forEach(option => {
       option.classList.toggle("selected", option === button);
@@ -244,9 +260,12 @@ document.querySelectorAll("[data-headline]").forEach(button => {
 
 document.getElementById("saveStatusAnnouncementBtn").addEventListener("click", sendStatusUpdate);
 
-noteInput.addEventListener("keydown", event => {
+function submitStatusOnEnter(event) {
   if (event.key === "Enter") {
     event.preventDefault();
     document.getElementById("saveStatusAnnouncementBtn").click();
   }
-});
+}
+
+customStatusInput.addEventListener("keydown", submitStatusOnEnter);
+noteInput.addEventListener("keydown", submitStatusOnEnter);

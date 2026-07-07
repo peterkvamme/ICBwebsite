@@ -92,14 +92,9 @@ body{
 .captain-top{
   width:min(100% - 24px,820px);
   margin:0 auto;
-  padding:18px 0 6px;
-  display:flex;
-  align-items:center;
-  gap:14px
+  padding:18px 0 6px
 }
-.captain-logo{width:clamp(54px,13vw,76px);height:auto;object-fit:contain;flex-shrink:0}
-.captain-top h1{margin:0;font-size:clamp(1.8rem,6vw,2.7rem);line-height:1;letter-spacing:-.035em;font-weight:800}
-.captain-top p{margin:5px 0 0;color:#222}
+.captain-top h1{margin:0;font-size:clamp(1.55rem,5vw,2.45rem);line-height:1.08;letter-spacing:-.035em;font-weight:800}
 .card{
   background:#fff;
   border-radius:var(--radius-card);
