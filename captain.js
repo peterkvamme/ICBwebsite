@@ -152,7 +152,7 @@ function getMapsUrl(lat, lng, updatedAt) {
 function renderCustomerPreview(data) {
   if (!data || data.showLocation === false || typeof data.lat !== "number" || typeof data.lng !== "number") {
     previewHeadline.textContent = data?.headline || "Not available right now";
-    previewArea.textContent = data?.showLocation === false ? "Location is hidden from customers." : "Check back soon.";
+    previewArea.textContent = data?.showLocation === false ? "" : "Check back soon.";
     previewUpdated.textContent = "";
     previewNote.textContent = data?.note || "";
     previewMapsLink.style.display = "none";

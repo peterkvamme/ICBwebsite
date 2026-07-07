@@ -117,7 +117,7 @@ onValue(boatRef, snapshot => {
 
   if (!data || data.showLocation === false || typeof data.lat !== "number" || typeof data.lng !== "number") {
     document.getElementById("headline").textContent = data?.headline || "Not available right now";
-    document.getElementById("area").textContent = data?.showLocation === false ? "Location is hidden right now." : "Check back soon.";
+    document.getElementById("area").textContent = data?.showLocation === false ? "" : "Check back soon.";
     document.getElementById("updated").textContent = "";
     document.getElementById("note").textContent = data?.note || "";
     document.getElementById("mapsLink").style.display = "none";

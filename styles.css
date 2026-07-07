@@ -61,6 +61,7 @@ body{
 .updated-text{font-size:clamp(.78rem,2.55vw,.98rem);font-weight:500;color:var(--muted);white-space:nowrap}
 .note-line{margin:4px 0 0;font-size:clamp(1rem,3.75vw,1.45rem);font-weight:700;line-height:1.16;color:var(--text)}
 .note-line:empty{display:none}
+.location-line:empty,.updated-text:empty{display:none}
 .button {
   display: flex;
   align-items: center;
