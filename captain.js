@@ -187,10 +187,10 @@ async function sendLocationUpdate(position = lastPosition) {
   await update(boatRef, payload);
 
   updateTrackingBanner();
-  sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
+  sentInfo.textContent = `<span style="color:#fff">Last location sent:</span> ${new Date().toLocaleTimeString()}`;
 
   if (position) {
-    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
+    gpsInfo.textContent = `<span style="color:#fff">GPS accuracy:</span> ${Math.round(position.coords.accuracy)} meters`;
   }
 }
 
