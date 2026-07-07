@@ -20,7 +20,6 @@ let currentState = {
 const loginCard = document.getElementById("loginCard");
 const dashboard = document.getElementById("dashboard");
 const statusControls = document.getElementById("statusControls");
-const captainPageTitle = document.getElementById("captainPageTitle");
 const trackingStatus = document.getElementById("trackingStatus");
 const gpsInfo = document.getElementById("gpsInfo");
 const sentInfo = document.getElementById("sentInfo");
@@ -34,11 +33,13 @@ const previewMapsLink = document.getElementById("previewMapsLink");
 
 const boatRef = ref(db, "boat/current");
 
-function updateCaptainTitle() {
-  const sharingText = watchId === null
-    ? "NOT sharing location from this page"
-    : "sharing location from this page";
-  captainPageTitle.textContent = `Captain Dashboard - ${sharingText}`;
+function updateTrackingBanner() {
+  const isTracking = watchId !== null;
+  trackingStatus.textContent = isTracking
+    ? "Captain Dashboard — Tracking"
+    : "Captain Dashboard — Not Tracking";
+  trackingStatus.classList.toggle("tracking-on", isTracking);
+  trackingStatus.classList.toggle("tracking-off", !isTracking);
 }
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -56,7 +57,7 @@ onAuthStateChanged(auth, user => {
     loginCard.style.display = "none";
     dashboard.style.display = "block";
     statusControls.style.display = "block";
-    updateCaptainTitle();
+    updateTrackingBanner();
   }
 });
 
@@ -183,7 +184,7 @@ async function sendLocationUpdate(position = lastPosition) {
   const payload = buildLocationPayload(position);
   await update(boatRef, payload);
 
-  trackingStatus.textContent = "Tracking active";
+  updateTrackingBanner();
   sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
 
   if (position) {
@@ -207,12 +208,12 @@ async function sendStatusUpdate() {
 
 document.getElementById("startBtn").addEventListener("click", () => {
   if (!navigator.geolocation) {
-    trackingStatus.textContent = "Geolocation is not supported on this device.";
+    updateTrackingBanner();
+    gpsInfo.textContent = "Geolocation is not supported on this device.";
     return;
   }
 
   if (watchId !== null) return;
-  trackingStatus.textContent = "Tracking active";
 
   watchId = navigator.geolocation.watchPosition(
     async position => {
@@ -220,18 +221,19 @@ document.getElementById("startBtn").addEventListener("click", () => {
       await sendLocationUpdate(position);
     },
     error => {
-      trackingStatus.textContent = `GPS error: ${error.message}`;
+      gpsInfo.textContent = `GPS error: ${error.message}`;
+      updateTrackingBanner();
     },
     { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
   );
-  updateCaptainTitle();
+  updateTrackingBanner();
 });
 
 document.getElementById("stopBtn").addEventListener("click", async () => {
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
-    updateCaptainTitle();
+    updateTrackingBanner();
   }
 
   currentState = {
@@ -242,7 +244,7 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
   };
   customStatusInput.value = currentState.headline;
   await sendStatusUpdate();
-  trackingStatus.textContent = "Not tracking";
+  updateTrackingBanner();
 });
 
 document.querySelectorAll("[data-headline]").forEach(button => {
