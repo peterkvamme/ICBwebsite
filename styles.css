@@ -171,3 +171,12 @@ button.danger{background:var(--danger);color:white}
 button.selected{outline:4px solid var(--brand-blue);outline-offset:3px}
 
 @media (min-width:560px){.tracking-card .actions{grid-template-columns:1fr 1fr}}
+
+/* Captain dashboard tracking details must stay readable on red/green cards. */
+.tracking-card .tracking-detail,
+.tracking-card p.tracking-detail,
+.tracking-card .small.tracking-detail {
+  color: #fff !important;
+  font-weight: 800;
+  text-shadow: none;
+}
