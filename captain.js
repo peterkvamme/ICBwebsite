@@ -9,6 +9,8 @@ const db = getDatabase(app);
 let watchId = null;
 let lastPosition = null;
 let latestBoatData = null;
+let locationSendTimer = null;
+const LOCATION_SEND_INTERVAL_MS = 10000;
 
 let currentState = {
   headline: "Selling now on Gull Lake!",
@@ -218,8 +220,12 @@ document.getElementById("startBtn").addEventListener("click", () => {
 
   watchId = navigator.geolocation.watchPosition(
     async position => {
+      const isFirstFix = lastPosition === null;
       lastPosition = position;
-      await sendLocationUpdate(position);
+
+      if (isFirstFix) {
+        await sendLocationUpdate(position);
+      }
     },
     error => {
       gpsInfo.textContent = `GPS error: ${error.message}`;
@@ -227,6 +233,13 @@ document.getElementById("startBtn").addEventListener("click", () => {
     },
     { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
   );
+
+  locationSendTimer = setInterval(async () => {
+    if (watchId !== null && lastPosition) {
+      await sendLocationUpdate(lastPosition);
+    }
+  }, LOCATION_SEND_INTERVAL_MS);
+
   updateTrackingBanner();
 });
 
@@ -235,6 +248,11 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
     updateTrackingBanner();
+  }
+
+  if (locationSendTimer !== null) {
+    clearInterval(locationSendTimer);
+    locationSendTimer = null;
   }
 
   currentState = {
