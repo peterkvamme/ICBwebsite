@@ -1,0 +1,22 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.icecreamboat.captain'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.icecreamboat.captain'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:33.2.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'androidx.core:core:1.13.1'
+}
