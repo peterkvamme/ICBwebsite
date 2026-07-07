@@ -28,32 +28,31 @@
       <p id="loginMsg" class="small"></p>
     </section>
 
-    <section class="card" id="dashboard" style="display:none;">
-      <h2 id="trackingStatus" class="tracking-banner tracking-off">Captain Dashboard — Not Tracking</h2>
-
-      <p id="gpsInfo" class="small"></p>
-      <p id="sentInfo" class="small"></p>
-
-      <h3>What customers see</h3>
-      <section class="status-card captain-preview-card">
-        <div class="status-layout">
-          <div class="logo-column">
-            <img src="logo-header.png" class="status-logo" alt="Ice Cream Boat logo">
-          </div>
-          <div class="text-column">
-            <div class="brand-name">Ice Cream Boat</div>
-            <h1 id="previewHeadline">Finding the boat...</h1>
-            <div class="location-updated-row">
-              <div id="previewArea" class="location-line">Getting current location.</div>
-              <div id="previewUpdated" class="updated-text"></div>
-            </div>
-            <div id="previewNote" class="note-line"></div>
-            <a id="previewMapsLink" class="button" target="_blank" rel="noopener">
-              Open Latest Location
-            </a>
-          </div>
+    <section class="status-card captain-preview-card" id="captainPreview" style="display:none;">
+      <div class="status-layout">
+        <div class="logo-column">
+          <img src="logo-header.png" class="status-logo" alt="Ice Cream Boat logo">
         </div>
-      </section>
+        <div class="text-column">
+          <div class="brand-name">Ice Cream Boat</div>
+          <h1 id="previewHeadline">Finding the boat...</h1>
+          <div class="location-updated-row">
+            <div id="previewArea" class="location-line">Getting current location.</div>
+            <div id="previewUpdated" class="updated-text"></div>
+          </div>
+          <div id="previewNote" class="note-line"></div>
+          <a id="previewMapsLink" class="button" target="_blank" rel="noopener">
+            Open Latest Location
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card tracking-card tracking-off" id="dashboard" style="display:none;">
+      <h2 id="trackingStatus" class="tracking-title">Captain Dashboard — Not Tracking</h2>
+
+      <p id="gpsInfo" class="small tracking-detail"></p>
+      <p id="sentInfo" class="small tracking-detail"></p>
 
       <div class="actions">
         <button id="startBtn">Start Sharing Location</button>

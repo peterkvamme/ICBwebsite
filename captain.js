@@ -19,6 +19,7 @@ let currentState = {
 
 const loginCard = document.getElementById("loginCard");
 const dashboard = document.getElementById("dashboard");
+const captainPreview = document.getElementById("captainPreview");
 const statusControls = document.getElementById("statusControls");
 const trackingStatus = document.getElementById("trackingStatus");
 const gpsInfo = document.getElementById("gpsInfo");
@@ -38,8 +39,8 @@ function updateTrackingBanner() {
   trackingStatus.textContent = isTracking
     ? "Captain Dashboard — Tracking"
     : "Captain Dashboard — Not Tracking";
-  trackingStatus.classList.toggle("tracking-on", isTracking);
-  trackingStatus.classList.toggle("tracking-off", !isTracking);
+  dashboard.classList.toggle("tracking-on", isTracking);
+  dashboard.classList.toggle("tracking-off", !isTracking);
 }
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -55,6 +56,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 onAuthStateChanged(auth, user => {
   if (user) {
     loginCard.style.display = "none";
+    captainPreview.style.display = "block";
     dashboard.style.display = "block";
     statusControls.style.display = "block";
     updateTrackingBanner();
