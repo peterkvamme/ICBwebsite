@@ -10,8 +10,8 @@ let watchId = null;
 let lastPosition = null;
 let latestBoatData = null;
 let locationSendTimer = null;
-let lastLocationSentAt = 0;
-let locationSendInFlight = false;
+let isSendingLocation = false;
+let wakeLock = null;
 const LOCATION_SEND_INTERVAL_MS = 10000;
 
 let currentState = {
@@ -186,35 +186,74 @@ function buildLocationPayload(position = lastPosition) {
   return payload;
 }
 
-async function sendLocationUpdate(position = lastPosition, options = {}) {
-  const now = Date.now();
+async function sendLocationUpdate(position = lastPosition) {
+  const payload = buildLocationPayload(position);
+  await update(boatRef, payload);
 
-  // Android can provide GPS callbacks about once per second. Keep GPS listening live,
-  // but throttle Firebase writes here so every browser/device follows the same cadence.
-  if (!options.force && now - lastLocationSentAt < LOCATION_SEND_INTERVAL_MS) {
-    return;
-  }
+  updateTrackingBanner();
+  sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
 
-  if (locationSendInFlight) {
-    return;
-  }
-
-  locationSendInFlight = true;
-  try {
-    const payload = buildLocationPayload(position);
-    await update(boatRef, payload);
-    lastLocationSentAt = now;
-
-    updateTrackingBanner();
-    sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
-
-    if (position) {
-      gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
-    }
-  } finally {
-    locationSendInFlight = false;
+  if (position) {
+    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
   }
 }
+
+function scheduleNextLocationSend(delayMs = LOCATION_SEND_INTERVAL_MS) {
+  if (locationSendTimer !== null) {
+    clearTimeout(locationSendTimer);
+  }
+
+  locationSendTimer = setTimeout(async () => {
+    if (watchId === null) {
+      locationSendTimer = null;
+      return;
+    }
+
+    if (lastPosition && !isSendingLocation) {
+      isSendingLocation = true;
+      try {
+        await sendLocationUpdate(lastPosition);
+      } finally {
+        isSendingLocation = false;
+      }
+    }
+
+    if (watchId !== null) {
+      scheduleNextLocationSend();
+    }
+  }, delayMs);
+}
+
+async function requestLocationWakeLock() {
+  if (!("wakeLock" in navigator) || wakeLock !== null) return;
+
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => {
+      wakeLock = null;
+    });
+  } catch (err) {
+    wakeLock = null;
+  }
+}
+
+async function releaseLocationWakeLock() {
+  if (!wakeLock) return;
+
+  try {
+    await wakeLock.release();
+  } catch (err) {
+    // No action needed if the browser already released it.
+  } finally {
+    wakeLock = null;
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && watchId !== null) {
+    requestLocationWakeLock();
+  }
+});
 
 async function sendStatusUpdate() {
   const typedStatus = customStatusInput.value.trim();
@@ -229,7 +268,7 @@ async function sendStatusUpdate() {
   await update(boatRef, payload);
 }
 
-document.getElementById("startBtn").addEventListener("click", () => {
+document.getElementById("startBtn").addEventListener("click", async () => {
   if (!navigator.geolocation) {
     updateTrackingBanner();
     gpsInfo.textContent = "Geolocation is not supported on this device.";
@@ -238,13 +277,16 @@ document.getElementById("startBtn").addEventListener("click", () => {
 
   if (watchId !== null) return;
 
+  await requestLocationWakeLock();
+
   watchId = navigator.geolocation.watchPosition(
     async position => {
       const isFirstFix = lastPosition === null;
       lastPosition = position;
 
       if (isFirstFix) {
-        await sendLocationUpdate(position, { force: true });
+        await sendLocationUpdate(position);
+        scheduleNextLocationSend();
       }
     },
     error => {
@@ -254,11 +296,6 @@ document.getElementById("startBtn").addEventListener("click", () => {
     { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
   );
 
-  locationSendTimer = setInterval(async () => {
-    if (watchId !== null && lastPosition) {
-      await sendLocationUpdate(lastPosition);
-    }
-  }, LOCATION_SEND_INTERVAL_MS);
 
   updateTrackingBanner();
 });
@@ -271,9 +308,11 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
   }
 
   if (locationSendTimer !== null) {
-    clearInterval(locationSendTimer);
+    clearTimeout(locationSendTimer);
     locationSendTimer = null;
   }
+
+  await releaseLocationWakeLock();
 
   currentState = {
     headline: "Done for the day, see you again soon",
