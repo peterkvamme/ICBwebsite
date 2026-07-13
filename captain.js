@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+import { getDatabase, ref, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
 const app = initializeApp(window.FIREBASE_CONFIG);
 const auth = getAuth(app);
@@ -13,6 +13,9 @@ let locationSendTimer = null;
 let isSendingLocation = false;
 let wakeLock = null;
 const LOCATION_SEND_INTERVAL_MS = 10000;
+const HISTORY_MIN_INTERVAL_MS = 2 * 60 * 1000;
+const HISTORY_DISTANCE_METERS = 200 * 0.3048;
+const HISTORY_MAX_MOVEMENT_ACCURACY_METERS = 50;
 
 let currentState = {
   headline: "Selling now on Gull Lake!",
@@ -38,6 +41,7 @@ const previewMapsLink = document.getElementById("previewMapsLink");
 const toggleLocationVisibilityBtn = document.getElementById("toggleLocationVisibilityBtn");
 
 const boatRef = ref(db, "boat/current");
+let lastSavedHistoryPoint = null;
 
 function isLocationVisible(data = latestBoatData) {
   return data?.showLocation !== false;
@@ -133,6 +137,72 @@ function formatClockTime(timestamp) {
   });
 }
 
+function getLocalDateKey(timestamp = Date.now()) {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getHistorySaveReason(position, timestamp) {
+  if (!position) return null;
+
+  const currentPoint = {
+    lat: position.coords.latitude,
+    lng: position.coords.longitude,
+    accuracy: position.coords.accuracy,
+    timestamp
+  };
+
+  if (!lastSavedHistoryPoint) {
+    return { reason: "first", distanceMeters: 0 };
+  }
+
+  const elapsedMs = timestamp - lastSavedHistoryPoint.timestamp;
+  if (elapsedMs >= HISTORY_MIN_INTERVAL_MS) {
+    return { reason: "time", distanceMeters: null };
+  }
+
+  const currentAccuracy = Number(currentPoint.accuracy);
+  const lastAccuracy = Number(lastSavedHistoryPoint.accuracy);
+  const hasGoodMovementAccuracy =
+    Number.isFinite(currentAccuracy) && currentAccuracy <= HISTORY_MAX_MOVEMENT_ACCURACY_METERS &&
+    Number.isFinite(lastAccuracy) && lastAccuracy <= HISTORY_MAX_MOVEMENT_ACCURACY_METERS;
+
+  if (!hasGoodMovementAccuracy) {
+    return null;
+  }
+
+  const distance = distanceMeters(
+    lastSavedHistoryPoint.lat,
+    lastSavedHistoryPoint.lng,
+    currentPoint.lat,
+    currentPoint.lng
+  );
+
+  if (distance >= HISTORY_DISTANCE_METERS) {
+    return { reason: "distance", distanceMeters: Math.round(distance) };
+  }
+
+  return null;
+}
+
+function buildHistoryPayload(position, timestamp, saveReason) {
+  return {
+    lat: position.coords.latitude,
+    lng: position.coords.longitude,
+    accuracy: position.coords.accuracy,
+    timestamp,
+    savedAt: timestamp,
+    dateKey: getLocalDateKey(timestamp),
+    saveReason: saveReason.reason,
+    distanceMeters: saveReason.distanceMeters,
+    headline: currentState.headline,
+    status: currentState.status
+  };
+}
+
 function getMapsUrl(lat, lng, updatedAt) {
   const isiPhone = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const updateTime = formatClockTime(updatedAt);
@@ -204,13 +274,39 @@ function buildLocationPayload(position = lastPosition) {
 
 async function sendLocationUpdate(position = lastPosition) {
   const payload = buildLocationPayload(position);
-  await update(boatRef, payload);
+  const now = payload.locationUpdatedAt || Date.now();
+  const updates = Object.fromEntries(
+    Object.entries(payload).map(([key, value]) => [`boat/current/${key}`, value])
+  );
+
+  const historySaveReason = getHistorySaveReason(position, now);
+  let historyPayload = null;
+  if (historySaveReason) {
+    const dateKey = getLocalDateKey(now);
+    const historyRef = push(ref(db, `boat/locationHistory/${dateKey}`));
+    historyPayload = buildHistoryPayload(position, now, historySaveReason);
+    updates[`boat/locationHistory/${dateKey}/${historyRef.key}`] = historyPayload;
+  }
+
+  await update(ref(db), updates);
+
+  if (historyPayload) {
+    lastSavedHistoryPoint = {
+      lat: historyPayload.lat,
+      lng: historyPayload.lng,
+      accuracy: historyPayload.accuracy,
+      timestamp: historyPayload.timestamp
+    };
+  }
 
   updateTrackingBanner();
   sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
 
   if (position) {
-    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
+    const historyText = historyPayload
+      ? `; history saved (${historyPayload.saveReason})`
+      : "; history not needed yet";
+    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters${historyText}`;
   }
 }
 
