@@ -17,6 +17,7 @@ const HISTORY_MIN_INTERVAL_MS = 2 * 60 * 1000;
 const HISTORY_DISTANCE_METERS = 200 * 0.3048;
 const HISTORY_MAX_MOVEMENT_ACCURACY_METERS = 50;
 const LOCAL_GPS_HISTORY_KEY = "iceCreamBoatGpsHistoryV1";
+const LOCATION_SHARING_ENABLED_KEY = "iceCreamBoatLocationSharingEnabled";
 
 let currentState = {
   headline: "Selling now on Gull Lake!",
@@ -150,6 +151,10 @@ onAuthStateChanged(auth, user => {
     dashboard.style.display = "block";
     statusControls.style.display = "block";
     updateTrackingBanner();
+
+    if (localStorage.getItem(LOCATION_SHARING_ENABLED_KEY) === "true") {
+      startLocationSharing({ remember: true });
+    }
   }
 });
 
@@ -614,15 +619,23 @@ async function sendStatusUpdate() {
   await update(boatRef, payload);
 }
 
-document.getElementById("startBtn").addEventListener("click", async () => {
+async function startLocationSharing({ remember = true } = {}) {
+  if (remember) {
+    localStorage.setItem(LOCATION_SHARING_ENABLED_KEY, "true");
+  }
+
   if (!navigator.geolocation) {
     updateTrackingBanner();
     gpsInfo.textContent = "Geolocation is not supported on this device.";
     return;
   }
 
-  if (watchId !== null) return;
+  if (watchId !== null) {
+    updateTrackingBanner();
+    return;
+  }
 
+  lastPosition = null;
   await requestLocationWakeLock();
 
   watchId = navigator.geolocation.watchPosition(
@@ -642,11 +655,14 @@ document.getElementById("startBtn").addEventListener("click", async () => {
     { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
   );
 
-
   updateTrackingBanner();
-});
+}
 
-document.getElementById("stopBtn").addEventListener("click", async () => {
+async function stopLocationSharing({ remember = true } = {}) {
+  if (remember) {
+    localStorage.setItem(LOCATION_SHARING_ENABLED_KEY, "false");
+  }
+
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
@@ -659,6 +675,14 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
 
   await releaseLocationWakeLock();
   updateTrackingBanner();
+}
+
+document.getElementById("startBtn").addEventListener("click", () => {
+  startLocationSharing({ remember: true });
+});
+
+document.getElementById("stopBtn").addEventListener("click", () => {
+  stopLocationSharing({ remember: true });
 });
 
 document.querySelectorAll("[data-headline]").forEach(button => {
