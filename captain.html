@@ -1,84 +1,51 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
   <meta charset="utf-8">
-  <title>Captain Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
+  <title>Captain Page</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
-
 <body>
-  
+  <div id="header">
+    <img src="logo-header.png" id="logo">
+  </div>
 
-  <main class="page">
-    <section class="card" id="loginCard">
-      <h2>Login</h2>
+  <div id="map"></div>
 
-      <div class="grid">
-        <input id="email" type="email" placeholder="Email">
-        <input id="password" type="password" placeholder="Password">
-        <button id="loginBtn">Login</button>
-      </div>
+  <div class="container">
+    <div id="status">
+      GPS Status: <span id="gps-status">Initializing...</span> <br>
+      Accuracy: <span id="gps-accuracy">--</span> meters <br>
+      Speed: <span id="gps-speed">--</span> mph
+    </div>
 
-      <p id="loginMsg" class="small"></p>
-    </section>
+    <hr>
 
-    <section class="card tracking-card tracking-off" id="dashboard" style="display:none;">
-      <h2 id="trackingStatus" class="tracking-title">Captain Dashboard — Not Tracking</h2>
+    <div class="controls">
+      <h3>Boat Status</h3>
+      <button id="btn-open" class="btn btn-success">Open for Business</button>
+      <button id="btn-closed" class="btn btn-danger">Closed</button>
+    </div>
 
-      <p id="gpsInfo" class="small tracking-detail"></p>
-      <p id="sentInfo" class="small tracking-detail"></p>
+    <hr>
 
-      <div class="actions">
-        <button id="startBtn">Start Sharing Location</button>
-        <button id="stopBtn" class="danger">Stop Sharing Location</button>
-        <button id="toggleLocationVisibilityBtn" class="secondary visibility-toggle">Hide Location from Customers</button>
-      </div>
-    </section>
+    <!-- RESTORED GPS DOWNLOAD SECTION -->
+    <div class="download-controls">
+      <h3>Export Data</h3>
+      <button id="btn-download-gps" class="btn btn-info" style="width: 100%; margin-top: 5px;">
+        Download GPS History (.csv)
+      </button>
+    </div>
+  </div>
 
-    <section class="card" id="statusControls" style="display:none;">
-      <h2>Status</h2>
-
-      <div class="grid status-grid three-status-grid">
-        <button data-headline="Selling now on Gull Lake!" data-status="selling">Selling now on Gull Lake!</button>
-      </div>
-
-      <input id="customStatusInput" placeholder="Type in a custom status here">
-
-      <h3>Customer announcement</h3>
-      <input id="noteInput" placeholder="Example: Back at 2:30 near Bar Harbor">
-      <button id="saveStatusAnnouncementBtn" class="secondary">Set Status/Announcement</button>
-    </section>
-
-    <section class="status-card captain-preview-card" id="captainPreview" style="display:none;">
-      <div class="status-layout">
-        <div class="logo-column">
-          <img src="logo-header.png" class="status-logo" alt="Ice Cream Boat logo">
-        </div>
-        <div class="text-column">
-          <div class="brand-name">Ice Cream Boat</div>
-          <h1 id="previewHeadline">Finding the boat...</h1>
-          <div class="location-updated-row">
-            <div id="previewArea" class="location-line">Getting current location.</div>
-            <div id="previewUpdated" class="updated-text"></div>
-          </div>
-          <div id="previewNote" class="note-line"></div>
-          <a id="previewMapsLink" class="button" target="_blank" rel="noopener">
-            Open Latest Location
-          </a>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
+  <!-- Firebase App (the SDK v8 used in your project) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="firebase-config.js"></script>
   <script src="landmarks.js"></script>
-  <script type="module" src="captain.js?v=13"></script>
+  <script src="captain.js"></script>
 </body>
 </html>
