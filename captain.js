@@ -16,6 +16,7 @@ const LOCATION_SEND_INTERVAL_MS = 10000;
 const HISTORY_MIN_INTERVAL_MS = 2 * 60 * 1000;
 const HISTORY_DISTANCE_METERS = 200 * 0.3048;
 const HISTORY_MAX_MOVEMENT_ACCURACY_METERS = 50;
+const LOCAL_GPS_HISTORY_KEY = "iceCreamBoatGpsHistoryV1";
 
 let currentState = {
   headline: "Selling now on Gull Lake!",
@@ -276,41 +277,41 @@ function buildLocationPayload(position = lastPosition) {
 async function sendLocationUpdate(position = lastPosition) {
   const payload = buildLocationPayload(position);
   const now = payload.locationUpdatedAt || Date.now();
-  const updates = Object.fromEntries(
-    Object.entries(payload).map(([key, value]) => [`boat/current/${key}`, value])
-  );
+
+  await update(boatRef, payload);
 
   const historySaveReason = getHistorySaveReason(position, now);
   let historyPayload = null;
+  let historyStatusText = "; history not needed yet";
+
   if (historySaveReason) {
     const dateKey = getLocalDateKey(now);
     const historyRef = push(ref(db, `boat/locationHistory/${dateKey}`));
     historyPayload = buildHistoryPayload(position, now, historySaveReason);
-    updates[`boat/locationHistory/${dateKey}/${historyRef.key}`] = historyPayload;
-  }
 
-  await update(ref(db), updates);
-
-  if (historyPayload) {
-    lastSavedHistoryPoint = {
-      lat: historyPayload.lat,
-      lng: historyPayload.lng,
-      accuracy: historyPayload.accuracy,
-      timestamp: historyPayload.timestamp
-    };
+    try {
+      await update(historyRef, historyPayload);
+      historyStatusText = `; Firebase history saved (${historyPayload.saveReason})`;
+      lastSavedHistoryPoint = {
+        lat: historyPayload.lat,
+        lng: historyPayload.lng,
+        accuracy: historyPayload.accuracy,
+        timestamp: historyPayload.timestamp
+      };
+    } catch (historyErr) {
+      console.warn("Firebase GPS history write failed; saved local backup only", historyErr);
+      saveLocalGpsHistoryPoint(historyPayload, historyRef.key);
+      historyStatusText = "; Firebase history write blocked — saved local backup only";
+    }
   }
 
   updateTrackingBanner();
   sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
 
   if (position) {
-    const historyText = historyPayload
-      ? `; history saved (${historyPayload.saveReason})`
-      : "; history not needed yet";
-    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters${historyText}`;
+    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters${historyStatusText}`;
   }
 }
-
 function scheduleNextLocationSend(delayMs = LOCATION_SEND_INTERVAL_MS) {
   if (locationSendTimer !== null) {
     clearTimeout(locationSendTimer);
@@ -368,6 +369,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+
 function csvEscape(value) {
   const text = value === null || value === undefined ? "" : String(value);
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -405,23 +407,81 @@ function formatCsvTimestamp(timestamp) {
   return new Date(numericTimestamp).toISOString();
 }
 
+function readLocalGpsHistory() {
+  try {
+    const raw = localStorage.getItem(LOCAL_GPS_HISTORY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.warn("Unable to read local GPS history backup", err);
+    return [];
+  }
+}
+
+function writeLocalGpsHistory(rows) {
+  try {
+    localStorage.setItem(LOCAL_GPS_HISTORY_KEY, JSON.stringify(rows));
+  } catch (err) {
+    console.warn("Unable to write local GPS history backup", err);
+  }
+}
+
+function saveLocalGpsHistoryPoint(point, id = "local") {
+  if (!point) return;
+
+  const rows = readLocalGpsHistory();
+  rows.push({
+    id,
+    dateKey: point.dateKey || getLocalDateKey(point.timestamp || point.savedAt || Date.now()),
+    ...point
+  });
+
+  const newestRows = rows
+    .filter(row => row && Number.isFinite(Number(row.timestamp || row.savedAt)))
+    .sort((a, b) => Number(a.timestamp || a.savedAt || 0) - Number(b.timestamp || b.savedAt || 0))
+    .slice(-5000);
+
+  writeLocalGpsHistory(newestRows);
+}
+
 async function downloadGpsHistoryCsv() {
   if (!downloadGpsHistoryBtn) return;
 
   const originalText = downloadGpsHistoryBtn.textContent;
   downloadGpsHistoryBtn.disabled = true;
-  downloadGpsHistoryBtn.textContent = "Preparing GPS CSV...";
+  downloadGpsHistoryBtn.textContent = "Reading Firebase GPS history...";
 
   try {
-    const snapshot = await get(ref(db, "boat/locationHistory"));
-    const historyRows = flattenHistorySnapshot(snapshot.val());
+    let historyRows = [];
+    let firebaseReadFailed = false;
+
+    try {
+      const snapshot = await get(ref(db, "boat/locationHistory"));
+      historyRows = flattenHistorySnapshot(snapshot.val());
+    } catch (firebaseErr) {
+      firebaseReadFailed = true;
+      console.warn("Firebase GPS history read failed", firebaseErr);
+    }
 
     if (!historyRows.length) {
-      downloadGpsHistoryBtn.textContent = "No GPS history found";
+      const localRows = readLocalGpsHistory();
+      if (localRows.length) {
+        historyRows = localRows;
+      }
+    }
+
+    historyRows = historyRows
+      .filter(point => point && point.lat !== undefined && point.lng !== undefined)
+      .sort((a, b) => Number(a.timestamp || a.savedAt || 0) - Number(b.timestamp || b.savedAt || 0));
+
+    if (!historyRows.length) {
+      downloadGpsHistoryBtn.textContent = firebaseReadFailed
+        ? "Firebase history read blocked"
+        : "No GPS history found";
       setTimeout(() => {
         downloadGpsHistoryBtn.textContent = originalText;
         downloadGpsHistoryBtn.disabled = false;
-      }, 2500);
+      }, 3500);
       return;
     }
 

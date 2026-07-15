@@ -182,7 +182,7 @@ button.selected{outline:4px solid var(--brand-blue);outline-offset:3px}
   text-shadow: none;
 }
 
-.tracking-card .visibility-toggle,
-.tracking-card .gps-download{grid-column:1/-1;background:#fff;color:#1d1d1f}
+.tracking-card .visibility-toggle{grid-column:1/-1;background:#fff;color:#1d1d1f}
 .tracking-card .visibility-toggle.location-hidden{background:#fef2f2;color:#7f1d1d}
-.tracking-card .gps-download:disabled{opacity:.7;cursor:wait}
+
+.tracking-card .gps-download{grid-column:1/-1;background:#fff;color:#1d1d1f}
