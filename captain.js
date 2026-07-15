@@ -583,7 +583,6 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
-    updateTrackingBanner();
   }
 
   if (locationSendTimer !== null) {
@@ -592,15 +591,6 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
   }
 
   await releaseLocationWakeLock();
-
-  currentState = {
-    headline: "Done for the day, see you again soon",
-    status: "done",
-    note: noteInput.value.trim() || "Location sharing is off.",
-    pauseUntil: null
-  };
-  customStatusInput.value = currentState.headline;
-  await sendStatusUpdate();
   updateTrackingBanner();
 });
 
