@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { getDatabase, ref, update, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+import { getDatabase, ref, update, onValue, push, get, set } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
 const app = initializeApp(window.FIREBASE_CONFIG);
 const auth = getAuth(app);
@@ -18,6 +18,8 @@ const HISTORY_DISTANCE_METERS = 200 * 0.3048;
 const HISTORY_MAX_MOVEMENT_ACCURACY_METERS = 50;
 const LOCAL_GPS_HISTORY_KEY = "iceCreamBoatGpsHistoryV1";
 const LOCATION_SHARING_ENABLED_KEY = "iceCreamBoatLocationSharingEnabled";
+const CAPTAIN_DEVICE_ID_KEY = "iceCreamBoatCaptainDeviceId";
+const ACTIVE_UPLOADER_STALE_MS = 5 * 60 * 1000;
 
 let currentState = {
   headline: "Selling now on Gull Lake!",
@@ -51,7 +53,58 @@ const lowPowerAccuracy = document.getElementById("lowPowerAccuracy");
 const lowPowerVisibility = document.getElementById("lowPowerVisibility");
 
 const boatRef = ref(db, "boat/current");
+const activeUploaderRef = ref(db, "boat/activeUploader");
 let lastSavedHistoryPoint = null;
+let activeUploader = null;
+let isStoppingForTakeover = false;
+
+function getOrCreateCaptainDeviceId() {
+  let deviceId = localStorage.getItem(CAPTAIN_DEVICE_ID_KEY);
+  if (!deviceId) {
+    const randomPart = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`).replace(/[^a-zA-Z0-9-]/g, "");
+    deviceId = `captain-${randomPart}`;
+    localStorage.setItem(CAPTAIN_DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
+}
+
+const captainDeviceId = getOrCreateCaptainDeviceId();
+
+function isThisDeviceUploader(uploader = activeUploader) {
+  return uploader && uploader.deviceId === captainDeviceId;
+}
+
+function isUploaderStale(uploader) {
+  const lastSeenAt = Number(uploader?.lastSeenAt || uploader?.startedAt || 0);
+  return !Number.isFinite(lastSeenAt) || Date.now() - lastSeenAt > ACTIVE_UPLOADER_STALE_MS;
+}
+
+function buildActiveUploaderPayload(now = Date.now()) {
+  return {
+    deviceId: captainDeviceId,
+    deviceLabel: navigator.userAgent.slice(0, 120),
+    startedAt: activeUploader?.deviceId === captainDeviceId ? (activeUploader.startedAt || now) : now,
+    lastSeenAt: now
+  };
+}
+
+async function claimActiveUploader() {
+  const payload = buildActiveUploaderPayload();
+  activeUploader = payload;
+  await set(activeUploaderRef, payload);
+}
+
+async function refreshActiveUploaderHeartbeat(now = Date.now()) {
+  if (!isThisDeviceUploader()) return;
+  try {
+    const payload = { ...activeUploader, lastSeenAt: now };
+    activeUploader = payload;
+    await update(activeUploaderRef, { lastSeenAt: now });
+  } catch (err) {
+    console.warn("Active uploader heartbeat failed", err);
+  }
+}
+
 
 function isLocationVisible(data = latestBoatData) {
   return data?.showLocation === true;
@@ -153,7 +206,7 @@ onAuthStateChanged(auth, user => {
     updateTrackingBanner();
 
     if (localStorage.getItem(LOCATION_SHARING_ENABLED_KEY) === "true") {
-      startLocationSharing({ remember: true });
+      startLocationSharing({ remember: true, autoResume: true });
     }
   }
 });
@@ -316,6 +369,21 @@ onValue(boatRef, snapshot => {
   updateLowPowerScreen();
 });
 
+onValue(activeUploaderRef, snapshot => {
+  activeUploader = snapshot.val();
+
+  if (watchId !== null && activeUploader && activeUploader.deviceId !== captainDeviceId) {
+    isStoppingForTakeover = true;
+    stopLocationSharing({ remember: true, clearActiveUploader: false }).finally(() => {
+      isStoppingForTakeover = false;
+      gpsInfo.textContent = "Location sharing was taken over by another device.";
+      if (sentInfo) sentInfo.textContent = "";
+      if (lowPowerLastSent) lowPowerLastSent.textContent = "Last location sent: —";
+      updateTrackingBanner();
+    });
+  }
+});
+
 setInterval(() => renderCustomerPreview(latestBoatData), 30000);
 
 function buildStatusPayload() {
@@ -344,10 +412,17 @@ function buildLocationPayload(position = lastPosition) {
 }
 
 async function sendLocationUpdate(position = lastPosition) {
+  if (!isThisDeviceUploader()) {
+    await stopLocationSharing({ remember: true, clearActiveUploader: false });
+    gpsInfo.textContent = "Location sharing stopped because another device is active.";
+    return;
+  }
+
   const payload = buildLocationPayload(position);
   const now = payload.locationUpdatedAt || Date.now();
 
   await update(boatRef, payload);
+  await refreshActiveUploaderHeartbeat(now);
 
   const historySaveReason = getHistorySaveReason(position, now);
   let historyPayload = null;
@@ -619,11 +694,7 @@ async function sendStatusUpdate() {
   await update(boatRef, payload);
 }
 
-async function startLocationSharing({ remember = true } = {}) {
-  if (remember) {
-    localStorage.setItem(LOCATION_SHARING_ENABLED_KEY, "true");
-  }
-
+async function startLocationSharing({ remember = true, autoResume = false } = {}) {
   if (!navigator.geolocation) {
     updateTrackingBanner();
     gpsInfo.textContent = "Geolocation is not supported on this device.";
@@ -633,6 +704,42 @@ async function startLocationSharing({ remember = true } = {}) {
   if (watchId !== null) {
     updateTrackingBanner();
     return;
+  }
+
+  try {
+    const snapshot = await get(activeUploaderRef);
+    const existingUploader = snapshot.val();
+    activeUploader = existingUploader;
+
+    if (existingUploader && existingUploader.deviceId !== captainDeviceId && !isUploaderStale(existingUploader)) {
+      if (autoResume) {
+        localStorage.setItem(LOCATION_SHARING_ENABLED_KEY, "false");
+        gpsInfo.textContent = "Another device is currently sharing location.";
+        updateTrackingBanner();
+        return;
+      }
+
+      const shouldTakeOver = window.confirm(
+        "Another device is currently uploading GPS.\n\nTake over location sharing on this device?"
+      );
+
+      if (!shouldTakeOver) {
+        localStorage.setItem(LOCATION_SHARING_ENABLED_KEY, "false");
+        updateTrackingBanner();
+        return;
+      }
+    }
+
+    await claimActiveUploader();
+  } catch (err) {
+    console.error("Unable to check active uploader", err);
+    gpsInfo.textContent = "Could not check whether another device is sharing location.";
+    updateTrackingBanner();
+    return;
+  }
+
+  if (remember) {
+    localStorage.setItem(LOCATION_SHARING_ENABLED_KEY, "true");
   }
 
   lastPosition = null;
@@ -658,7 +765,7 @@ async function startLocationSharing({ remember = true } = {}) {
   updateTrackingBanner();
 }
 
-async function stopLocationSharing({ remember = true } = {}) {
+async function stopLocationSharing({ remember = true, clearActiveUploader = true } = {}) {
   if (remember) {
     localStorage.setItem(LOCATION_SHARING_ENABLED_KEY, "false");
   }
@@ -671,6 +778,19 @@ async function stopLocationSharing({ remember = true } = {}) {
   if (locationSendTimer !== null) {
     clearTimeout(locationSendTimer);
     locationSendTimer = null;
+  }
+
+  if (clearActiveUploader) {
+    try {
+      const snapshot = await get(activeUploaderRef);
+      const uploader = snapshot.val();
+      if (uploader && uploader.deviceId === captainDeviceId) {
+        activeUploader = null;
+        await set(activeUploaderRef, null);
+      }
+    } catch (err) {
+      console.warn("Could not clear active uploader", err);
+    }
   }
 
   await releaseLocationWakeLock();

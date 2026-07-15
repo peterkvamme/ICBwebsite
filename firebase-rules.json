@@ -4,19 +4,45 @@
       "current": {
         ".read": true,
         ".write": "auth != null && root.child('captains').child(auth.uid).val() === true",
-        "lat": { ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90" },
-        "lng": { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" },
-        "accuracy": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "headline": { ".validate": "newData.isString() && newData.val().length <= 80" },
-        "status": { ".validate": "newData.isString() && newData.val().length <= 40" },
-        "note": { ".validate": "newData.isString() && newData.val().length <= 160" },
-        "availableAt": { ".validate": "newData.val() === null || newData.isString()" },
-        "pauseUntil": { ".validate": "newData.val() === null || newData.isNumber()" },
-        "updatedAt": { ".validate": "newData.isNumber()" },
-        "locationUpdatedAt": { ".validate": "newData.isNumber()" },
-        "showLocation": { ".validate": "newData.isBoolean()" },
-        "visibilityUpdatedAt": { ".validate": "newData.isNumber()" },
-        "statusUpdatedAt": { ".validate": "newData.isNumber()" }
+        "lat": {
+          ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+        },
+        "lng": {
+          ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+        },
+        "accuracy": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "headline": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "status": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "note": {
+          ".validate": "newData.isString() && newData.val().length <= 160"
+        },
+        "availableAt": {
+          ".validate": "newData.val() === null || newData.isString()"
+        },
+        "pauseUntil": {
+          ".validate": "newData.val() === null || newData.isNumber()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "locationUpdatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "showLocation": {
+          ".validate": "newData.isBoolean()"
+        },
+        "visibilityUpdatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "statusUpdatedAt": {
+          ".validate": "newData.isNumber()"
+        }
       },
       "locationHistory": {
         ".read": "auth != null && root.child('captains').child(auth.uid).val() === true",
@@ -24,17 +50,54 @@
           ".write": "auth != null && root.child('captains').child(auth.uid).val() === true",
           "$point": {
             ".validate": "newData.hasChildren(['lat', 'lng', 'accuracy', 'timestamp', 'savedAt', 'dateKey', 'saveReason', 'status'])",
-            "lat": { ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90" },
-            "lng": { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" },
-            "accuracy": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-            "timestamp": { ".validate": "newData.isNumber()" },
-            "savedAt": { ".validate": "newData.isNumber()" },
-            "dateKey": { ".validate": "newData.isString() && newData.val() === $date" },
-            "saveReason": { ".validate": "newData.isString() && (newData.val() === 'first' || newData.val() === 'time' || newData.val() === 'distance')" },
-            "distanceMeters": { ".validate": "newData.val() === null || newData.isNumber()" },
-            "headline": { ".validate": "newData.val() === null || (newData.isString() && newData.val().length <= 80)" },
-            "status": { ".validate": "newData.isString() && newData.val().length <= 40" }
+            "lat": {
+              ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+            },
+            "lng": {
+              ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+            },
+            "accuracy": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "timestamp": {
+              ".validate": "newData.isNumber()"
+            },
+            "savedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "dateKey": {
+              ".validate": "newData.isString() && newData.val() === $date"
+            },
+            "saveReason": {
+              ".validate": "newData.isString() && (newData.val() === 'first' || newData.val() === 'time' || newData.val() === 'distance')"
+            },
+            "distanceMeters": {
+              ".validate": "newData.val() === null || newData.isNumber()"
+            },
+            "headline": {
+              ".validate": "newData.val() === null || (newData.isString() && newData.val().length <= 80)"
+            },
+            "status": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            }
           }
+        }
+      },
+      "activeUploader": {
+        ".read": "auth != null && root.child('captains').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('captains').child(auth.uid).val() === true",
+        ".validate": "newData.val() === null || newData.hasChildren(['deviceId', 'startedAt', 'lastSeenAt'])",
+        "deviceId": {
+          ".validate": "newData.isString() && newData.val().length <= 120"
+        },
+        "deviceLabel": {
+          ".validate": "newData.val() === null || (newData.isString() && newData.val().length <= 160)"
+        },
+        "startedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "lastSeenAt": {
+          ".validate": "newData.isNumber()"
         }
       }
     },
