@@ -20,7 +20,6 @@ const LOCAL_GPS_HISTORY_KEY = "iceCreamBoatGpsHistoryV1";
 
 let currentState = {
   headline: "Selling now on Gull Lake!",
-  status: "selling",
   note: "",
   pauseUntil: null
 };
@@ -200,8 +199,7 @@ function buildHistoryPayload(position, timestamp, saveReason) {
     dateKey: getLocalDateKey(timestamp),
     saveReason: saveReason.reason,
     distanceMeters: saveReason.distanceMeters,
-    headline: currentState.headline,
-    status: currentState.status
+    status: currentState.headline
   };
 }
 
@@ -251,7 +249,6 @@ setInterval(() => renderCustomerPreview(latestBoatData), 30000);
 function buildStatusPayload() {
   return {
     headline: currentState.headline,
-    status: currentState.status,
     note: currentState.note,
     pauseUntil: currentState.pauseUntil,
     statusUpdatedAt: Date.now()
@@ -494,7 +491,6 @@ async function downloadGpsHistoryCsv() {
       "accuracy",
       "accuracyMeters",
       "dateKey",
-      "headline",
       "status",
       "saveReason",
       "distanceMeters",
@@ -511,8 +507,7 @@ async function downloadGpsHistoryCsv() {
         point.accuracy ?? "",
         point.accuracy ?? "",
         point.dateKey ?? "",
-        point.headline ?? "",
-        point.status ?? "",
+        point.headline ?? point.status ?? "",
         point.saveReason ?? "",
         point.distanceMeters ?? "",
         point.id ?? ""
@@ -597,7 +592,6 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
 document.querySelectorAll("[data-headline]").forEach(button => {
   button.addEventListener("click", () => {
     currentState.headline = button.dataset.headline;
-    currentState.status = button.dataset.status;
     currentState.pauseUntil = null;
     customStatusInput.value = currentState.headline;
 
