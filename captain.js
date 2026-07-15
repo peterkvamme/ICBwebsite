@@ -1,477 +1,154 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { getDatabase, ref, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+// Initialize Map
+const map = L.map('map').setView([46.435, -94.34], 13); // Centered near Gull Lake, MN
 
-const app = initializeApp(window.FIREBASE_CONFIG);
-const auth = getAuth(app);
-const db = getDatabase(app);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
 
-let watchId = null;
-let lastPosition = null;
-let latestBoatData = null;
-let locationSendTimer = null;
-let isSendingLocation = false;
-let wakeLock = null;
-const LOCATION_SEND_INTERVAL_MS = 10000;
-const HISTORY_MIN_INTERVAL_MS = 2 * 60 * 1000;
-const HISTORY_DISTANCE_METERS = 200 * 0.3048;
-const HISTORY_MAX_MOVEMENT_ACCURACY_METERS = 50;
-
-let currentState = {
-  headline: "Selling now on Gull Lake!",
-  status: "selling",
-  note: "",
-  pauseUntil: null
-};
-
-const loginCard = document.getElementById("loginCard");
-const dashboard = document.getElementById("dashboard");
-const captainPreview = document.getElementById("captainPreview");
-const statusControls = document.getElementById("statusControls");
-const trackingStatus = document.getElementById("trackingStatus");
-const gpsInfo = document.getElementById("gpsInfo");
-const sentInfo = document.getElementById("sentInfo");
-const customStatusInput = document.getElementById("customStatusInput");
-const noteInput = document.getElementById("noteInput");
-const previewHeadline = document.getElementById("previewHeadline");
-const previewArea = document.getElementById("previewArea");
-const previewUpdated = document.getElementById("previewUpdated");
-const previewNote = document.getElementById("previewNote");
-const previewMapsLink = document.getElementById("previewMapsLink");
-const toggleLocationVisibilityBtn = document.getElementById("toggleLocationVisibilityBtn");
-
-const boatRef = ref(db, "boat/current");
-let lastSavedHistoryPoint = null;
-
-function isLocationVisible(data = latestBoatData) {
-  return data?.showLocation !== false;
-}
-
-function updateLocationVisibilityButton(data = latestBoatData) {
-  if (!toggleLocationVisibilityBtn) return;
-
-  const visible = isLocationVisible(data);
-  toggleLocationVisibilityBtn.textContent = visible
-    ? "Hide Location from Customers"
-    : "Show Location to Customers";
-  toggleLocationVisibilityBtn.classList.toggle("location-hidden", !visible);
-}
-
-function updateTrackingBanner() {
-  const isTracking = watchId !== null;
-  trackingStatus.textContent = isTracking
-    ? "Captain Dashboard — Tracking"
-    : "Captain Dashboard — Not Tracking";
-  dashboard.classList.toggle("tracking-on", isTracking);
-  dashboard.classList.toggle("tracking-off", !isTracking);
-}
-
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-  } catch (err) {
-    document.getElementById("loginMsg").textContent = err.message;
-  }
+// Custom Ice Cream Boat marker
+const iceCreamIcon = L.icon({
+    iconUrl: 'logo-marker.png',
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+    popupAnchor: [0, -38]
 });
 
-onAuthStateChanged(auth, user => {
-  if (user) {
-    loginCard.style.display = "none";
-    captainPreview.style.display = "block";
-    dashboard.style.display = "block";
-    statusControls.style.display = "block";
-    updateTrackingBanner();
-  }
-});
+const boatMarker = L.marker([46.435, -94.34], {icon: iceCreamIcon}).addTo(map);
 
-function distanceMeters(aLat, aLng, bLat, bLng) {
-  const R = 6371000;
-  const toRad = value => value * Math.PI / 180;
-  const dLat = toRad(bLat - aLat);
-  const dLng = toRad(bLng - aLng);
-  const lat1 = toRad(aLat);
-  const lat2 = toRad(bLat);
-  const h = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+// Firebase references
+const database = firebase.database();
+const activePathRef = database.ref('activePath');
+const boatStatusRef = database.ref('status');
 
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
+// Track DOM elements
+const gpsStatus = document.getElementById('gps-status');
+const gpsAccuracy = document.getElementById('gps-accuracy');
+const gpsSpeed = document.getElementById('gps-speed');
+const btnOpen = document.getElementById('btn-open');
+const btnClosed = document.getElementById('btn-closed');
+const btnDownloadGps = document.getElementById('btn-download-gps');
 
-function getLocationLabel(lat, lng) {
-  const landmarks = window.BOAT_LANDMARKS || [];
-  if (!landmarks.length) return "near Gull Lake";
-
-  const ranked = landmarks
-    .map(landmark => ({
-      ...landmark,
-      meters: distanceMeters(lat, lng, landmark.lat, landmark.lng)
-    }))
-    .sort((a, b) => a.meters - b.meters);
-
-  const nearest = ranked[0];
-  return nearest.label || `near ${nearest.name}`;
-}
-
-function timeAgo(timestamp) {
-  if (!timestamp) return "";
-
-  const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
-  if (seconds < 10) return "Updated just now";
-  if (seconds < 60) return `Updated ${seconds} seconds ago`;
-
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `Updated ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-
-  const hours = Math.floor(minutes / 60);
-  return `Updated ${hours} hour${hours === 1 ? "" : "s"} ago`;
-}
-
-function formatClockTime(timestamp) {
-  if (!timestamp) return "";
-
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
-
-function getLocalDateKey(timestamp = Date.now()) {
-  const date = new Date(timestamp);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function getHistorySaveReason(position, timestamp) {
-  if (!position) return null;
-
-  const currentPoint = {
-    lat: position.coords.latitude,
-    lng: position.coords.longitude,
-    accuracy: position.coords.accuracy,
-    timestamp
-  };
-
-  if (!lastSavedHistoryPoint) {
-    return { reason: "first", distanceMeters: 0 };
-  }
-
-  const elapsedMs = timestamp - lastSavedHistoryPoint.timestamp;
-  if (elapsedMs >= HISTORY_MIN_INTERVAL_MS) {
-    return { reason: "time", distanceMeters: null };
-  }
-
-  const currentAccuracy = Number(currentPoint.accuracy);
-  const lastAccuracy = Number(lastSavedHistoryPoint.accuracy);
-  const hasGoodMovementAccuracy =
-    Number.isFinite(currentAccuracy) && currentAccuracy <= HISTORY_MAX_MOVEMENT_ACCURACY_METERS &&
-    Number.isFinite(lastAccuracy) && lastAccuracy <= HISTORY_MAX_MOVEMENT_ACCURACY_METERS;
-
-  if (!hasGoodMovementAccuracy) {
-    return null;
-  }
-
-  const distance = distanceMeters(
-    lastSavedHistoryPoint.lat,
-    lastSavedHistoryPoint.lng,
-    currentPoint.lat,
-    currentPoint.lng
-  );
-
-  if (distance >= HISTORY_DISTANCE_METERS) {
-    return { reason: "distance", distanceMeters: Math.round(distance) };
-  }
-
-  return null;
-}
-
-function buildHistoryPayload(position, timestamp, saveReason) {
-  return {
-    lat: position.coords.latitude,
-    lng: position.coords.longitude,
-    accuracy: position.coords.accuracy,
-    timestamp,
-    savedAt: timestamp,
-    dateKey: getLocalDateKey(timestamp),
-    saveReason: saveReason.reason,
-    distanceMeters: saveReason.distanceMeters,
-    headline: currentState.headline,
-    status: currentState.status
-  };
-}
-
-function getMapsUrl(lat, lng, updatedAt) {
-  const isiPhone = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const updateTime = formatClockTime(updatedAt);
-  const label = updateTime
-    ? `Ice Cream Boat - location at ${updateTime}`
-    : "Ice Cream Boat";
-
-  const encodedLabel = encodeURIComponent(label);
-
-  if (isiPhone) {
-    return `https://maps.apple.com/?q=${encodedLabel}&ll=${lat},${lng}`;
-  }
-
-  return `geo:${lat},${lng}?q=${lat},${lng}(${encodedLabel})`;
-}
-
-function renderCustomerPreview(data) {
-  if (!data || data.showLocation === false || typeof data.lat !== "number" || typeof data.lng !== "number") {
-    previewHeadline.textContent = data?.headline || "Not available right now";
-    previewArea.textContent = data?.showLocation === false ? "" : "Check back soon.";
-    previewUpdated.textContent = "";
-    previewNote.textContent = data?.note || "";
-    previewMapsLink.style.display = "none";
-    return;
-  }
-
-  const locationUpdatedAt = data.locationUpdatedAt || data.updatedAt;
-  previewHeadline.textContent = data.headline || "Selling now on Gull Lake!";
-  previewArea.textContent = `📍 ${getLocationLabel(data.lat, data.lng)}`;
-  previewUpdated.textContent = timeAgo(locationUpdatedAt);
-  previewNote.textContent = data.note || "";
-  previewMapsLink.href = getMapsUrl(data.lat, data.lng, locationUpdatedAt);
-  previewMapsLink.style.display = "flex";
-}
-
-onValue(boatRef, snapshot => {
-  latestBoatData = snapshot.val();
-  updateLocationVisibilityButton(latestBoatData);
-  renderCustomerPreview(latestBoatData);
-});
-
-setInterval(() => renderCustomerPreview(latestBoatData), 30000);
-
-function buildStatusPayload() {
-  return {
-    headline: currentState.headline,
-    status: currentState.status,
-    note: currentState.note,
-    pauseUntil: currentState.pauseUntil,
-    statusUpdatedAt: Date.now()
-  };
-}
-
-function buildLocationPayload(position = lastPosition) {
-  const now = Date.now();
-  const payload = {
-    ...buildStatusPayload(),
-    updatedAt: now,
-    locationUpdatedAt: now
-  };
-
-  if (position) {
-    payload.lat = position.coords.latitude;
-    payload.lng = position.coords.longitude;
-    payload.accuracy = position.coords.accuracy;
-  }
-  return payload;
-}
-
-async function sendLocationUpdate(position = lastPosition) {
-  const payload = buildLocationPayload(position);
-  const now = payload.locationUpdatedAt || Date.now();
-  const updates = Object.fromEntries(
-    Object.entries(payload).map(([key, value]) => [`boat/current/${key}`, value])
-  );
-
-  const historySaveReason = getHistorySaveReason(position, now);
-  let historyPayload = null;
-  if (historySaveReason) {
-    const dateKey = getLocalDateKey(now);
-    const historyRef = push(ref(db, `boat/locationHistory/${dateKey}`));
-    historyPayload = buildHistoryPayload(position, now, historySaveReason);
-    updates[`boat/locationHistory/${dateKey}/${historyRef.key}`] = historyPayload;
-  }
-
-  await update(ref(db), updates);
-
-  if (historyPayload) {
-    lastSavedHistoryPoint = {
-      lat: historyPayload.lat,
-      lng: historyPayload.lng,
-      accuracy: historyPayload.accuracy,
-      timestamp: historyPayload.timestamp
-    };
-  }
-
-  updateTrackingBanner();
-  sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
-
-  if (position) {
-    const historyText = historyPayload
-      ? `; history saved (${historyPayload.saveReason})`
-      : "; history not needed yet";
-    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters${historyText}`;
-  }
-}
-
-function scheduleNextLocationSend(delayMs = LOCATION_SEND_INTERVAL_MS) {
-  if (locationSendTimer !== null) {
-    clearTimeout(locationSendTimer);
-  }
-
-  locationSendTimer = setTimeout(async () => {
-    if (watchId === null) {
-      locationSendTimer = null;
-      return;
-    }
-
-    if (lastPosition && !isSendingLocation) {
-      isSendingLocation = true;
-      try {
-        await sendLocationUpdate(lastPosition);
-      } finally {
-        isSendingLocation = false;
-      }
-    }
-
-    if (watchId !== null) {
-      scheduleNextLocationSend();
-    }
-  }, delayMs);
-}
-
-async function requestLocationWakeLock() {
-  if (!("wakeLock" in navigator) || wakeLock !== null) return;
-
-  try {
-    wakeLock = await navigator.wakeLock.request("screen");
-    wakeLock.addEventListener("release", () => {
-      wakeLock = null;
+// Map landmarks from landmarks.js if available
+if (typeof landmarks !== 'undefined') {
+    landmarks.forEach(landmark => {
+        L.marker([landmark.lat, landmark.lng]).addTo(map).bindPopup(landmark.name);
     });
-  } catch (err) {
-    wakeLock = null;
-  }
 }
 
-async function releaseLocationWakeLock() {
-  if (!wakeLock) return;
+// Update Status Buttons
+btnOpen.addEventListener('click', () => {
+    boatStatusRef.set('open');
+    alert("Boat status set to OPEN");
+});
 
-  try {
-    await wakeLock.release();
-  } catch (err) {
-    // No action needed if the browser already released it.
-  } finally {
-    wakeLock = null;
-  }
+btnClosed.addEventListener('click', () => {
+    boatStatusRef.set('closed');
+    alert("Boat status set to CLOSED");
+});
+
+// Geolocation tracking
+if ("geolocation" in navigator) {
+    navigator.geolocation.watchPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            // Convert speed from m/s to mph, handle null
+            const speed = position.coords.speed ? (position.coords.speed * 2.23694).toFixed(1) : 0;
+            const timestamp = Date.now();
+
+            // Update UI
+            gpsStatus.textContent = "Active";
+            gpsStatus.style.color = "green";
+            gpsAccuracy.textContent = accuracy.toFixed(1);
+            gpsSpeed.textContent = speed;
+
+            // Pan map and move marker
+            map.setView([lat, lng]);
+            boatMarker.setLatLng([lat, lng]);
+
+            // Push coordinates to activePath in Firebase
+            activePathRef.push({
+                lat: lat,
+                lng: lng,
+                accuracy: accuracy,
+                speed: speed,
+                timestamp: timestamp
+            });
+        },
+        (error) => {
+            console.error("Error obtaining location: ", error);
+            gpsStatus.textContent = "Error (" + error.message + ")";
+            gpsStatus.style.color = "red";
+        },
+        {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 5000
+        }
+    );
+} else {
+    gpsStatus.textContent = "Not Supported by Browser";
+    gpsStatus.style.color = "red";
 }
 
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && watchId !== null) {
-    requestLocationWakeLock();
-  }
-});
+// NEW / RESTORED: Download GPS history from Firebase database
+if (btnDownloadGps) {
+    btnDownloadGps.addEventListener('click', async () => {
+        try {
+            btnDownloadGps.textContent = "Fetching Data...";
+            btnDownloadGps.disabled = true;
 
-async function sendStatusUpdate() {
-  const typedStatus = customStatusInput.value.trim();
-  const typedNote = noteInput.value.trim();
+            const snapshot = await activePathRef.once('value');
+            const data = snapshot.val();
 
-  currentState.headline = typedStatus || currentState.headline || "Selling now on Gull Lake!";
-  currentState.note = typedNote;
+            if (!data) {
+                alert("No GPS data found in Firebase under 'activePath'!");
+                btnDownloadGps.textContent = "Download GPS History (.csv)";
+                btnDownloadGps.disabled = false;
+                return;
+            }
 
-  const payload = buildStatusPayload();
-  latestBoatData = { ...(latestBoatData || {}), ...payload };
-  updateLocationVisibilityButton(latestBoatData);
-  renderCustomerPreview(latestBoatData);
-  await update(boatRef, payload);
-}
+            // CSV Columns Setup
+            let csvContent = "data:text/csv;charset=utf-8,Timestamp,Date/Time,Latitude,Longitude,Speed (mph),Accuracy (m)\n";
 
-document.getElementById("startBtn").addEventListener("click", async () => {
-  if (!navigator.geolocation) {
-    updateTrackingBanner();
-    gpsInfo.textContent = "Geolocation is not supported on this device.";
-    return;
-  }
+            // Parse and format firebase location nodes
+            Object.keys(data).forEach(key => {
+                const node = data[key];
+                const lat = node.lat || '';
+                const lng = node.lng || '';
+                const speed = node.speed || '0';
+                const accuracy = node.accuracy || '';
+                const timestamp = node.timestamp || '';
+                
+                let readableTime = '';
+                if (timestamp) {
+                    readableTime = new Date(timestamp).toLocaleString().replace(/,/g, '');
+                }
 
-  if (watchId !== null) return;
+                csvContent += `${timestamp},${readableTime},${lat},${lng},${speed},${accuracy}\n`;
+            });
 
-  await requestLocationWakeLock();
+            // Trigger safe browser download
+            const encodedUri = encodeURI(csvContent);
+            const downloadLink = document.createElement("a");
+            downloadLink.setAttribute("href", encodedUri);
+            downloadLink.setAttribute("download", `boat_route_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(downloadLink);
+            
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
 
-  watchId = navigator.geolocation.watchPosition(
-    async position => {
-      const isFirstFix = lastPosition === null;
-      lastPosition = position;
+            // Reset button state
+            btnDownloadGps.textContent = "Download GPS History (.csv)";
+            btnDownloadGps.disabled = false;
 
-      if (isFirstFix) {
-        await sendLocationUpdate(position);
-        scheduleNextLocationSend();
-      }
-    },
-    error => {
-      gpsInfo.textContent = `GPS error: ${error.message}`;
-      updateTrackingBanner();
-    },
-    { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
-  );
-
-
-  updateTrackingBanner();
-});
-
-document.getElementById("stopBtn").addEventListener("click", async () => {
-  if (watchId !== null) {
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-    updateTrackingBanner();
-  }
-
-  if (locationSendTimer !== null) {
-    clearTimeout(locationSendTimer);
-    locationSendTimer = null;
-  }
-
-  await releaseLocationWakeLock();
-
-  currentState = {
-    headline: "Done for the day, see you again soon",
-    status: "done",
-    note: noteInput.value.trim() || "Location sharing is off.",
-    pauseUntil: null
-  };
-  customStatusInput.value = currentState.headline;
-  await sendStatusUpdate();
-  updateTrackingBanner();
-});
-
-document.querySelectorAll("[data-headline]").forEach(button => {
-  button.addEventListener("click", () => {
-    currentState.headline = button.dataset.headline;
-    currentState.status = button.dataset.status;
-    currentState.pauseUntil = null;
-    customStatusInput.value = currentState.headline;
-
-    document.querySelectorAll("[data-headline]").forEach(option => {
-      option.classList.toggle("selected", option === button);
+        } catch (err) {
+            console.error("Error retrieving GPS paths: ", err);
+            alert("Could not download coordinates. Make sure your internet is working and database rules allow reads.");
+            btnDownloadGps.textContent = "Download GPS History (.csv)";
+            btnDownloadGps.disabled = false;
+        }
     });
-  });
-});
-
-toggleLocationVisibilityBtn.addEventListener("click", async () => {
-  const nextShowLocation = !isLocationVisible();
-  const payload = {
-    showLocation: nextShowLocation,
-    visibilityUpdatedAt: Date.now()
-  };
-
-  latestBoatData = { ...(latestBoatData || {}), ...payload };
-  updateLocationVisibilityButton(latestBoatData);
-  renderCustomerPreview(latestBoatData);
-  await update(boatRef, payload);
-});
-
-document.getElementById("saveStatusAnnouncementBtn").addEventListener("click", sendStatusUpdate);
-
-function submitStatusOnEnter(event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    document.getElementById("saveStatusAnnouncementBtn").click();
-  }
 }
-
-customStatusInput.addEventListener("keydown", submitStatusOnEnter);
-noteInput.addEventListener("keydown", submitStatusOnEnter);
