@@ -39,6 +39,7 @@
         <button id="stopBtn" class="danger">Stop Sharing Location</button>
         <button id="toggleLocationVisibilityBtn" class="secondary visibility-toggle">Hide Location from Customers</button>
         <button id="downloadGpsHistoryBtn" class="secondary gps-download">Download GPS History CSV</button>
+        <button id="lowPowerModeBtn" class="secondary low-power-toggle">Low Power Tracking Mode</button>
       </div>
     </section>
 
@@ -78,8 +79,19 @@
 
   </main>
 
+  <section id="lowPowerScreen" class="low-power-screen" aria-live="polite" style="display:none;">
+    <div class="low-power-panel">
+      <div id="lowPowerDot" class="low-power-dot not-tracking"></div>
+      <div id="lowPowerTitle" class="low-power-title">Not uploading GPS</div>
+      <div id="lowPowerLastSent" class="low-power-detail">Last location sent: —</div>
+      <div id="lowPowerAccuracy" class="low-power-detail">GPS accuracy: —</div>
+      <div id="lowPowerVisibility" class="low-power-detail">Customer location: —</div>
+      <button id="exitLowPowerModeBtn" class="exit-low-power">Exit Low Power Mode</button>
+    </div>
+  </section>
+
   <script src="firebase-config.js"></script>
   <script src="landmarks.js"></script>
-  <script type="module" src="captain.js?v=19"></script>
+  <script type="module" src="captain.js?v=20"></script>
 </body>
 </html>

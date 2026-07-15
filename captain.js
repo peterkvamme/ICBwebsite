@@ -40,6 +40,14 @@ const previewNote = document.getElementById("previewNote");
 const previewMapsLink = document.getElementById("previewMapsLink");
 const toggleLocationVisibilityBtn = document.getElementById("toggleLocationVisibilityBtn");
 const downloadGpsHistoryBtn = document.getElementById("downloadGpsHistoryBtn");
+const lowPowerModeBtn = document.getElementById("lowPowerModeBtn");
+const lowPowerScreen = document.getElementById("lowPowerScreen");
+const exitLowPowerModeBtn = document.getElementById("exitLowPowerModeBtn");
+const lowPowerDot = document.getElementById("lowPowerDot");
+const lowPowerTitle = document.getElementById("lowPowerTitle");
+const lowPowerLastSent = document.getElementById("lowPowerLastSent");
+const lowPowerAccuracy = document.getElementById("lowPowerAccuracy");
+const lowPowerVisibility = document.getElementById("lowPowerVisibility");
 
 const boatRef = ref(db, "boat/current");
 let lastSavedHistoryPoint = null;
@@ -65,6 +73,64 @@ function updateTrackingBanner() {
     : "Captain Dashboard — Not Tracking";
   dashboard.classList.toggle("tracking-on", isTracking);
   dashboard.classList.toggle("tracking-off", !isTracking);
+  updateLowPowerScreen();
+}
+
+function updateLowPowerScreen() {
+  if (!lowPowerScreen) return;
+
+  const isTracking = watchId !== null;
+  lowPowerDot?.classList.toggle("tracking", isTracking);
+  lowPowerDot?.classList.toggle("not-tracking", !isTracking);
+
+  if (lowPowerTitle) {
+    lowPowerTitle.textContent = isTracking ? "Uploading GPS" : "Not uploading GPS";
+  }
+
+  if (lowPowerVisibility) {
+    lowPowerVisibility.textContent = isLocationVisible()
+      ? "Customer location: visible"
+      : "Customer location: hidden";
+  }
+
+  if (lowPowerLastSent && !lowPowerLastSent.textContent.trim()) {
+    lowPowerLastSent.textContent = "Last location sent: —";
+  }
+
+  if (lowPowerAccuracy && !lowPowerAccuracy.textContent.trim()) {
+    lowPowerAccuracy.textContent = "GPS accuracy: —";
+  }
+}
+
+async function enterLowPowerMode() {
+  if (!lowPowerScreen) return;
+
+  document.body.classList.add("low-power-active");
+  lowPowerScreen.style.display = "flex";
+  updateLowPowerScreen();
+
+  try {
+    if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (err) {
+    console.warn("Fullscreen request was not allowed", err);
+  }
+}
+
+async function exitLowPowerMode() {
+  if (!lowPowerScreen) return;
+
+  lowPowerScreen.style.display = "none";
+  document.body.classList.remove("low-power-active");
+
+  try {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      await document.exitFullscreen();
+    }
+  } catch (err) {
+    console.warn("Fullscreen exit failed", err);
+  }
 }
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -242,6 +308,7 @@ onValue(boatRef, snapshot => {
   latestBoatData = snapshot.val();
   updateLocationVisibilityButton(latestBoatData);
   renderCustomerPreview(latestBoatData);
+  updateLowPowerScreen();
 });
 
 setInterval(() => renderCustomerPreview(latestBoatData), 30000);
@@ -303,11 +370,16 @@ async function sendLocationUpdate(position = lastPosition) {
   }
 
   updateTrackingBanner();
-  sentInfo.textContent = `Last location sent: ${new Date().toLocaleTimeString()}`;
+  const lastSentText = `Last location sent: ${new Date().toLocaleTimeString()}`;
+  sentInfo.textContent = lastSentText;
+  if (lowPowerLastSent) lowPowerLastSent.textContent = lastSentText;
 
   if (position) {
-    gpsInfo.textContent = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters${historyStatusText}`;
+    const accuracyText = `GPS accuracy: ${Math.round(position.coords.accuracy)} meters`;
+    gpsInfo.textContent = `${accuracyText}${historyStatusText}`;
+    if (lowPowerAccuracy) lowPowerAccuracy.textContent = accuracyText;
   }
+  updateLowPowerScreen();
 }
 function scheduleNextLocationSend(delayMs = LOCATION_SEND_INTERVAL_MS) {
   if (locationSendTimer !== null) {
@@ -605,6 +677,14 @@ if (downloadGpsHistoryBtn) {
   downloadGpsHistoryBtn.addEventListener("click", downloadGpsHistoryCsv);
 }
 
+if (lowPowerModeBtn) {
+  lowPowerModeBtn.addEventListener("click", enterLowPowerMode);
+}
+
+if (exitLowPowerModeBtn) {
+  exitLowPowerModeBtn.addEventListener("click", exitLowPowerMode);
+}
+
 toggleLocationVisibilityBtn.addEventListener("click", async () => {
   const nextShowLocation = !isLocationVisible();
   const payload = {
@@ -615,6 +695,7 @@ toggleLocationVisibilityBtn.addEventListener("click", async () => {
   latestBoatData = { ...(latestBoatData || {}), ...payload };
   updateLocationVisibilityButton(latestBoatData);
   renderCustomerPreview(latestBoatData);
+  updateLowPowerScreen();
   await update(boatRef, payload);
 });
 
