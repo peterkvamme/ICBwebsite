@@ -115,9 +115,9 @@ const boatRef = ref(db, "boat/current");
 onValue(boatRef, snapshot => {
   const data = snapshot.val();
 
-  if (!data || data.showLocation === false || typeof data.lat !== "number" || typeof data.lng !== "number") {
+  if (!data || data.showLocation !== true || typeof data.lat !== "number" || typeof data.lng !== "number") {
     document.getElementById("headline").textContent = data?.headline || "Not available right now";
-    document.getElementById("area").textContent = data?.showLocation === false ? "" : "Check back soon.";
+    document.getElementById("area").textContent = "";
     document.getElementById("updated").textContent = "";
     document.getElementById("note").textContent = data?.note || "";
     document.getElementById("mapsLink").style.display = "none";

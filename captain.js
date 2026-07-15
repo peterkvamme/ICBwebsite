@@ -46,7 +46,7 @@ const boatRef = ref(db, "boat/current");
 let lastSavedHistoryPoint = null;
 
 function isLocationVisible(data = latestBoatData) {
-  return data?.showLocation !== false;
+  return data?.showLocation === true;
 }
 
 function updateLocationVisibilityButton(data = latestBoatData) {
@@ -222,9 +222,9 @@ function getMapsUrl(lat, lng, updatedAt) {
 }
 
 function renderCustomerPreview(data) {
-  if (!data || data.showLocation === false || typeof data.lat !== "number" || typeof data.lng !== "number") {
+  if (!data || data.showLocation !== true || typeof data.lat !== "number" || typeof data.lng !== "number") {
     previewHeadline.textContent = data?.headline || "Not available right now";
-    previewArea.textContent = data?.showLocation === false ? "" : "Check back soon.";
+    previewArea.textContent = "";
     previewUpdated.textContent = "";
     previewNote.textContent = data?.note || "";
     previewMapsLink.style.display = "none";
