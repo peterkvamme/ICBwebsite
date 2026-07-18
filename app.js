@@ -20,6 +20,7 @@ const boatIcon = L.icon({
 });
 
 let boatMarker = null;
+let latestLocationUpdatedAt = null;
 
 function distanceMeters(aLat, aLng, bLat, bLng) {
   const R = 6371000;
@@ -95,7 +96,8 @@ function updatePage(data) {
     data.headline || "Available now";
 
   document.getElementById("area").textContent = `📍 ${getLocationLabel(data.lat, data.lng)}`;
-  document.getElementById("updated").textContent = timeAgo(data.locationUpdatedAt || data.updatedAt);
+  latestLocationUpdatedAt = data.locationUpdatedAt || data.updatedAt || null;
+  document.getElementById("updated").textContent = timeAgo(latestLocationUpdatedAt);
   document.getElementById("note").textContent = data.note || "";
 
   const mapsLink = document.getElementById("mapsLink");
@@ -118,6 +120,7 @@ onValue(boatRef, snapshot => {
   if (!data || data.showLocation !== true || typeof data.lat !== "number" || typeof data.lng !== "number") {
     document.getElementById("headline").textContent = data?.headline || "Not available right now";
     document.getElementById("area").textContent = "";
+    latestLocationUpdatedAt = null;
     document.getElementById("updated").textContent = "";
     document.getElementById("note").textContent = data?.note || "";
     document.getElementById("mapsLink").style.display = "none";
@@ -133,12 +136,17 @@ onValue(boatRef, snapshot => {
   updatePage(data);
 });
 
+function refreshLocationAge() {
+  const updated = document.getElementById("updated");
+  if (updated && latestLocationUpdatedAt) {
+    updated.textContent = timeAgo(latestLocationUpdatedAt);
+  }
+}
+
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") window.location.reload();
+  if (document.visibilityState === "visible") refreshLocationAge();
 });
 
-window.addEventListener("focus", () => window.location.reload());
+window.addEventListener("focus", refreshLocationAge);
 
-setInterval(() => {
-  if (document.visibilityState === "visible") window.location.reload();
-}, 15 * 60 * 1000);
+setInterval(refreshLocationAge, 1000);
