@@ -20,6 +20,44 @@
       color: rgba(23,23,23,.68);
     }
     .leaflet-container { background: #cfe8f3; }
+    .landmark-pin-icon {
+      background: transparent;
+      border: 0;
+    }
+    .landmark-pin {
+      position: relative;
+      width: 25px;
+      height: 25px;
+      background: #e53935;
+      border: 2px solid #fff;
+      border-radius: 50% 50% 50% 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,.55);
+      transform: rotate(-45deg);
+    }
+    .landmark-pin::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      top: 7px;
+      left: 7px;
+      background: #fff;
+      border-radius: 50%;
+    }
+    .landmark-label {
+      background: rgba(255,255,255,.94);
+      border: 1px solid rgba(0,0,0,.3);
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.25);
+      color: #171717;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.15;
+      padding: 3px 6px;
+      white-space: nowrap;
+    }
+    .landmark-label::before { display: none; }
   </style>
 </head>
 <body>
@@ -103,6 +141,30 @@
         iconSize: [78, 78],
         iconAnchor: [39, 39],
         popupAnchor: [0, -39]
+      });
+
+      const landmarkIcon = L.divIcon({
+        className: "landmark-pin-icon",
+        html: '<div class="landmark-pin"></div>',
+        iconSize: [29, 37],
+        iconAnchor: [14, 35]
+      });
+
+      landmarks.forEach(landmark => {
+        L.marker([landmark.lat, landmark.lng], {
+          icon: landmarkIcon,
+          interactive: false,
+          keyboard: false,
+          zIndexOffset: 100
+        })
+          .addTo(map)
+          .bindTooltip(landmark.name, {
+            permanent: true,
+            direction: "right",
+            offset: [11, -17],
+            className: "landmark-label",
+            opacity: 1
+          });
       });
 
       let boatMarker = null;
