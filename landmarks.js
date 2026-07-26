@@ -1,5 +1,11 @@
 window.BOAT_LANDMARKS = [
   {
+    name: "Bar Harbor",
+    label: "near Bar Harbor",
+    lat: 46.5075701,
+    lng: -94.34925605
+  },
+  {
     name: "Cragun's Resort",
     label: "near Cragun's",
     lat: 46.39053311,
@@ -28,6 +34,12 @@ window.BOAT_LANDMARKS = [
     label: "near Grand View Lodge",
     lat: 46.49374206,
     lng: -94.31535812
+  },
+  {
+    name: "Gull Point Sandbar",
+    label: "near Gull Point Sandbar",
+    lat: 46.42483822,
+    lng: -94.37000306
   },
   {
     name: "Hole In The Day Bay",
