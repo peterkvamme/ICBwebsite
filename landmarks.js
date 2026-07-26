@@ -32,8 +32,8 @@ window.BOAT_LANDMARKS = [
   {
     name: "Grand View Lodge",
     label: "near Grand View Lodge",
-    lat: 46.49374206,
-    lng: -94.31535812
+    lat: 46.49117236,
+    lng: -94.31562442
   },
   {
     name: "Gull Point Sandbar",
