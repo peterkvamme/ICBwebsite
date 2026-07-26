@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Ice Cream Boat Location Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="logo-marker.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    #map { cursor: crosshair; }
+    .test-instructions {
+      margin: 12px 4px 0;
+      text-align: center;
+      font-size: clamp(.85rem, 2.8vw, 1rem);
+      font-weight: 700;
+      color: rgba(23,23,23,.68);
+    }
+    .leaflet-container { background: #cfe8f3; }
+  </style>
+</head>
+<body>
+  <main class="page public-page">
+    <section class="status-card">
+      <div class="status-layout">
+        <div class="logo-column">
+          <img src="logo-header.png" class="status-logo" alt="Ice Cream Boat logo">
+        </div>
+        <div class="text-column">
+          <div class="brand-name">Ice Cream Boat</div>
+          <h1 id="headline">Selling Now</h1>
+          <div class="location-updated-row">
+            <div id="area" class="location-line">Click the map to test a location.</div>
+            <div id="updated" class="updated-text"></div>
+          </div>
+          <div id="note" class="note-line"></div>
+          <a id="mapsLink" class="button" target="_blank" rel="noopener" style="display:none">
+            Open Selected Location
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="map-card">
+      <div id="map" aria-label="Clickable Gull Lake location test map"></div>
+    </section>
+
+    <p class="test-instructions">Click anywhere on the map. The boat pin and nearest displayed landmark will update immediately.</p>
+
+    <section class="about-section">
+      <p>Ice Cream Boat on Gull Lake, MN — location test page</p>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      const landmarks = [
+        { name: "Bar Harbor", label: "near Bar Harbor", lat: 46.5075701, lng: -94.34925605 },
+        { name: "Cragun's Resort", label: "near Cragun's", lat: 46.39053311, lng: -94.36950423 },
+        { name: "Dutchmans Bluff", label: "near Dutchmans Bluff", lat: 46.49037984, lng: -94.32829094 },
+        { name: "East Gull Lake", label: "near East Gull Lake", lat: 46.41086871, lng: -94.36633178 },
+        { name: "Ernie's on Gull", label: "near Ernie's", lat: 46.42548075, lng: -94.35505571 },
+        { name: "Grand View Lodge", label: "near Grand View Lodge", lat: 46.49117236, lng: -94.31562442 },
+        { name: "Gull Point Sandbar", label: "near Gull Point Sandbar", lat: 46.42483822, lng: -94.37000306 },
+        { name: "Hole In The Day Bay", label: "near Hole In The Day Bay", lat: 46.47459654, lng: -94.30171443 },
+        { name: "Love Lake", label: "near Love Lake", lat: 46.43705404, lng: -94.31686082 },
+        { name: "Madden's", label: "near Madden's", lat: 46.39757722, lng: -94.37836101 },
+        { name: "Quarterdeck", label: "near Quarterdeck", lat: 46.44844929, lng: -94.36343827 },
+        { name: "Rocky Point", label: "near Rocky Point", lat: 46.46550298, lng: -94.3547975 },
+        { name: "Round Lake", label: "near Round Lake", lat: 46.45801441, lng: -94.28297993 },
+        { name: "Sandy Point", label: "near Sandy Point", lat: 46.4578223, lng: -94.35039641 },
+        { name: "Steamboat Bay", label: "near Steamboat Bay", lat: 46.39016412, lng: -94.36058105 },
+        { name: "Wilson Bay", label: "near Wilson Bay", lat: 46.40074326, lng: -94.40339097 },
+        { name: "Zorbaz", label: "near Zorbaz", lat: 46.51104003, lng: -94.34429483 }
+      ];
+
+      const lakeBounds = L.latLngBounds(
+        [46.377, -94.419],
+        [46.521, -94.270]
+      );
+
+      const map = L.map("map", {
+        zoomControl: true,
+        maxBounds: lakeBounds.pad(0.35),
+        maxBoundsViscosity: 0.65
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+
+      map.fitBounds(lakeBounds, { padding: [10, 10] });
+
+      const boatIcon = L.icon({
+        iconUrl: "logo-marker.png",
+        iconSize: [78, 78],
+        iconAnchor: [39, 39],
+        popupAnchor: [0, -39]
+      });
+
+      let boatMarker = null;
+
+      function distanceMeters(aLat, aLng, bLat, bLng) {
+        const radius = 6371000;
+        const toRadians = value => value * Math.PI / 180;
+        const dLat = toRadians(bLat - aLat);
+        const dLng = toRadians(bLng - aLng);
+        const lat1 = toRadians(aLat);
+        const lat2 = toRadians(bLat);
+        const h = Math.sin(dLat / 2) ** 2 +
+          Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+        return 2 * radius * Math.asin(Math.sqrt(h));
+      }
+
+      function nearestLandmark(lat, lng) {
+        return landmarks.reduce((nearest, landmark) => {
+          const meters = distanceMeters(lat, lng, landmark.lat, landmark.lng);
+          return !nearest || meters < nearest.meters
+            ? { ...landmark, meters }
+            : nearest;
+        }, null);
+      }
+
+      function mapsUrl(lat, lng) {
+        const label = encodeURIComponent("Ice Cream Boat test location");
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+          return `https://maps.apple.com/?q=${label}&ll=${lat},${lng}`;
+        }
+        return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      }
+
+      function selectLocation(lat, lng) {
+        const nearest = nearestLandmark(lat, lng);
+        const position = [lat, lng];
+
+        if (!boatMarker) {
+          boatMarker = L.marker(position, { icon: boatIcon }).addTo(map);
+        } else {
+          boatMarker.setLatLng(position);
+        }
+
+        boatMarker
+          .bindPopup(`<strong>Ice Cream Boat</strong><br>${nearest.label}`)
+          .openPopup();
+
+        document.getElementById("headline").textContent = "Selling Now";
+        document.getElementById("area").textContent = `📍 ${nearest.label}`;
+        document.getElementById("updated").textContent = "Updated just now";
+        document.getElementById("note").textContent = "";
+
+        const mapsLink = document.getElementById("mapsLink");
+        mapsLink.href = mapsUrl(lat, lng);
+        mapsLink.style.display = "flex";
+      }
+
+      map.on("click", event => {
+        selectLocation(event.latlng.lat, event.latlng.lng);
+      });
+
+      window.addEventListener("load", () => {
+        setTimeout(() => map.invalidateSize(), 100);
+      });
+    })();
+  </script>
+</body>
+</html>
