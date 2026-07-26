@@ -26,8 +26,8 @@ window.BOAT_LANDMARKS = [
   {
     name: "Ernie's on Gull",
     label: "near Ernie's",
-    lat: 46.42436828,
-    lng: -94.36040094
+    lat: 46.42548075,
+    lng: -94.35505571
   },
   {
     name: "Grand View Lodge",
